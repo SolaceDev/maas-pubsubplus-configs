@@ -1,0 +1,21 @@
+name: Publish package to GitHub Packages
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - 'develop'
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Extract branch name
+        id: extract_branch
+        run: |
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/} | sed -e 's/\//_/g')"
+          echo "::set-output name=sha_short::$(echo ${GITHUB_SHA::10})"
+
+      - name: Publish package
+        run: gradle -Pversion="${{ steps.extract_branch.outputs.branch }}-SNAPSHOT" build publish
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

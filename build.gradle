@@ -3,6 +3,7 @@ import java.text.SimpleDateFormat
 plugins {
     id "java"
     id "io.freefair.lombok" version "5.3.0"
+    id "maven-publish"
 }
 
 group 'com.solace.tools.solconfig'
@@ -63,3 +64,18 @@ tasks.named('test') {
     // Use junit platform for unit tests.
     useJUnitPlatform()
 }
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/SolaceDev/maas-maven-artifacts")
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
+
