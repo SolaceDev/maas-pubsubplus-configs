@@ -77,5 +77,13 @@ publishing {
             from(components.java)
         }
     }
+    publications {
+        register("jar", MavenPublication) {
+            from(components["java"])
+            pom {
+                url.set("https://github.com/SolaceDev/maas-pubsubplus-configs.git")
+            }
+        }
+    }
 }
 
