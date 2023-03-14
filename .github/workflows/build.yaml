@@ -17,5 +17,5 @@ jobs:
 
       - name: Publish package
         run: gradle -Pversion="${{ steps.extract_branch.outputs.branch }}-SNAPSHOT" build publish
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
