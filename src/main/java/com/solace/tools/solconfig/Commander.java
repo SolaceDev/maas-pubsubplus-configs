@@ -24,7 +24,7 @@ public class Commander {
         return commander;
     }
 
-    private void setupSempSpec() {
+    public void setupSempSpec() {
         SempSpec.setupByString(sempClient.getBrokerSpec());
     }
 
