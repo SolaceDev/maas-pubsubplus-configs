@@ -1,6 +1,7 @@
 package com.solace.tools.solconfig;
 
 import com.solace.tools.solconfig.model.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +13,8 @@ import org.slf4j.LoggerFactory;
 
 public class Commander {
     final Logger logger = LoggerFactory.getLogger(Commander.class);
-    @Getter private SempClient sempClient;
+    @Getter @Setter
+    private SempClient sempClient;
     @Setter private boolean curlOnly;
 
     public static Commander ofSempClient(SempClient sempClient){
