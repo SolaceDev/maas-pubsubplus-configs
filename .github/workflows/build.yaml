@@ -16,7 +16,7 @@ jobs:
           echo "::set-output name=sha_short::$(echo ${GITHUB_SHA::10})"
 
       - name: Publish package
-        run: gradle -Pversion="${{ steps.extract_branch.outputs.branch }}-${{GITHUB_SHA::10}}-SNAPSHOT" build publish
+        run: gradle -Pversion="${{ steps.extract_branch.outputs.branch }}-${{sha_short}}-SNAPSHOT" build publish
         env:
           GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
           GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
