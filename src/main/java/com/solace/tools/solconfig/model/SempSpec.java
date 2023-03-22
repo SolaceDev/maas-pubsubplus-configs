@@ -40,6 +40,10 @@ public class SempSpec {
         static {
             map.put(vpn, "msgVpns");
             map.put(cluster, "dmrClusters");
+            map.put(serverCerts, "certAuthorities");
+            map.put(clientCerts, "clientCertAuthorities");
+            map.put(oauthProfile, "oauthProfiles");
+            map.put(virtualHostname, "virtualHostnames");
 
             reversedMap = map.entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
