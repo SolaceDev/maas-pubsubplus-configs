@@ -33,7 +33,7 @@ public class SempSpec {
     @Getter private Map<AttributeCombinationKey, List<String>> attributeCombinations;
 
     public enum RES_ABBR {
-        vpn, cluster;
+        vpn, cluster, serverCerts, clientCerts, oauthProfile, virtualHostname;
 
         private static Map<RES_ABBR, String> map = new HashMap<>();
         private static Map<String, RES_ABBR> reversedMap;
