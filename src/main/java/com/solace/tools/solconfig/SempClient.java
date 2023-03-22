@@ -282,6 +282,6 @@ public class SempClient {
     }
 
     public boolean isCloudInstance(){
-        return this.baseUrl.contains("messaging.solace.cloud");
+        return this.baseUrl.contains("messaging.solace.cloud") ||  this.baseUrl.contains("messaging.maasgo.net") |  this.baseUrl.contains("messaging.mymaas.net");
     }
 }
