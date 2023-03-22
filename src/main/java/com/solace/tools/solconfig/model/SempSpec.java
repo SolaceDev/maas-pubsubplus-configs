@@ -42,7 +42,7 @@ public class SempSpec {
             map.put(cluster, "dmrClusters");
             map.put(serverCerts, "certAuthorities");
             map.put(clientCerts, "clientCertAuthorities");
-            map.put(oauthProfile, "oauthProfiles");
+//            map.put(oauthProfile, "oauthProfiles");
             map.put(virtualHostname, "virtualHostnames");
 
             reversedMap = map.entrySet().stream()
