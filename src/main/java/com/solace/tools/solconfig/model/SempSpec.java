@@ -33,14 +33,14 @@ public class SempSpec {
     @Getter private Map<AttributeCombinationKey, List<String>> attributeCombinations;
 
     public enum RES_ABBR {
-        vpn, cluster, serverCerts, clientCerts, oauthProfile, virtualHostname;
+        vpn, cluster, domainCerts, clientCerts, oauthProfile, virtualHostname;
 
         private static Map<RES_ABBR, String> map = new HashMap<>();
         private static Map<String, RES_ABBR> reversedMap;
         static {
             map.put(vpn, "msgVpns");
             map.put(cluster, "dmrClusters");
-            map.put(serverCerts, "certAuthorities");
+            map.put(domainCerts, "domainCertAuthorities");
             map.put(clientCerts, "clientCertAuthorities");
 //            map.put(oauthProfile, "oauthProfiles");
             map.put(virtualHostname, "virtualHostnames");
