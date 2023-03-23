@@ -207,7 +207,13 @@ public class Commander {
         return configBroker;
     }
 
-    public Map<String, Object> diff(ConfigBroker configFile, boolean isNoDelete) {
+    public void diff(Map<String, Object> map) {
+        ConfigBroker configFile = getConfigBrokerFromMap(map);
+        exitOnObjectsNotExist(configFile);
+        diff(configFile);
+    }
+
+    public Map<String, Object> diff(ConfigBroker configFile) {
         ConfigBroker configBroker = generateConfigFromBroker(configFile);
         sempClient.setOpaquePassword(configFile.getOpaquePassword());
         List.of(configFile, configBroker).forEach(cb->{
