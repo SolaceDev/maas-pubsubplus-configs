@@ -207,10 +207,10 @@ public class Commander {
         return configBroker;
     }
 
-    public void diff(Map<String, Object> map) {
+    public Map<String, Object> diff(Map<String, Object> map) {
         ConfigBroker configFile = getConfigBrokerFromMap(map);
         exitOnObjectsNotExist(configFile);
-        diff(configFile);
+        return diff(configFile);
     }
 
     public Map<String, Object> diff(ConfigBroker configFile) {
