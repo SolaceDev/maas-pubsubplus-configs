@@ -107,6 +107,16 @@ public class Commander {
         commandList.execute(sempClient, curlOnly);
     }
 
+    private ConfigBroker getConfigBrokerFromMap(Map<String, Object> map) {
+        ConfigBroker configFromFile = new ConfigBroker();
+        configFromFile.addChildrenFromMap(map);
+        configFromFile.sortChildren();
+        configFromFile.setSempVersion(new SempVersion((String) map.get(SempSpec.SEMP_VERSION)));
+        configFromFile.setOpaquePassword((String) map.get((SempSpec.OPAQUE_PASSWORD)));
+        compareSempVersion(configFromFile);
+        return configFromFile;
+    }
+
     private ConfigBroker getConfigBrokerFromFile(Path confPath) {
         ConfigBroker configFromFile = new ConfigBroker();
         Map<String, Object> map = SempClient.readMapFromJsonFile(confPath);
@@ -222,6 +232,12 @@ public class Commander {
         diff.put("delete", deleteCommandList);
         diff.put("enable", enableCommandList);
         return diff;
+    }
+
+    public void update(Map<String, Object> map, boolean isNoDelete) {
+        ConfigBroker configFile = getConfigBrokerFromMap(map);
+        exitOnObjectsNotExist(configFile);
+        update(configFile, isNoDelete);
     }
 
     public void update(Path confPath, boolean isNoDelete){
