@@ -39,13 +39,13 @@ public class Utils {
         errPrintlnAndExit(null, format, args);
     }
 
-    public static void errPrintlnAndExit(Exception e, String format, Object... args) {
+    public static void errPrintlnAndExit(Exception e, String format, Object... args) throws Exception {
         err(format, args);
         err("%n");
         if (Objects.nonNull(e)) {
             e.printStackTrace();
         }
-        System.exit(1);
+        throw new RuntimeException(e);
     }
 
     public static Set<Map.Entry<String, Object>> symmetricDiff(Set<Map.Entry<String, Object>> s1, Set<Map.Entry<String, Object>> s2) {
