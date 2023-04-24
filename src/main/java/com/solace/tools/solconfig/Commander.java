@@ -31,6 +31,8 @@ public class Commander {
     }
 
     public ConfigBroker backup(String resourceType, String[] objectNames, boolean isKeepDefault){
+        log.debug("Doing broker config backup: resourceType={}, objectNames={}, isKeepDefault={}",
+                resourceType, objectNames, isKeepDefault);
         exitOnObjectsNotExist(resourceType, objectNames);
         ConfigBroker configBroker = generateConfigFromBroker(resourceType, objectNames);
 
