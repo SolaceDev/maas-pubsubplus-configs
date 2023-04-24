@@ -42,11 +42,13 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class SempClient {
-    private final Logger logger = LoggerFactory.getLogger(SempClient.class);
+//    private final Logger logger = LoggerFactory.getLogger(SempClient.class);
     private static final String CONFIG_BASE_PATH = "/SEMP/v2/config";
     public static final int HTTP_OK = 200;
 
@@ -217,7 +219,7 @@ public class SempClient {
                     "%s %s returns empty body",
                     method, absUri);
         }
-        logger.debug("{} {}\n{}\n{}", method.toUpperCase(), absUri,
+        log.debug("{} {}\n{}\n{}", method.toUpperCase(), absUri,
                 Objects.isNull(payload) || payload.isEmpty() ?"":payload, body.get());
         return body.orElse(null);
     }

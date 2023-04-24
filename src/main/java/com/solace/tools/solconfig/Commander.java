@@ -176,6 +176,7 @@ public class Commander {
     }
 
     private void checkObjectsExistence(String resourceTypeFullName, List<String> objectNames, boolean existOn) {
+        log.debug("Checking if {} {} exist", resourceTypeFullName, objectNames);
         var objects = sempClient.checkIfObjectsExist(resourceTypeFullName, objectNames);
         var resultSet = objects.stream()
                 .filter(e -> e.getValue() == existOn)
