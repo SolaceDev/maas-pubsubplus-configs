@@ -3,7 +3,6 @@ package com.solace.tools.solconfig;
 import com.solace.tools.solconfig.model.HTTPMethod;
 import com.solace.tools.solconfig.model.SEMPError;
 import com.solace.tools.solconfig.model.SolConfigException;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
@@ -13,8 +12,8 @@ import java.util.Objects;
 @Slf4j
 public class RestCommandList {
 
-    @Value("${solace.tools.solconfig.exitOnErrors:true}")
-    private static boolean exitOnErrors;
+    private static boolean exitOnErrors = Boolean.parseBoolean(System.getProperty("solace.tools.solconfig.exitOnErrors",
+            String.valueOf(true)));
 
     class Command {
         private HTTPMethod method;

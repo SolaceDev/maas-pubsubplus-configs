@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.solace.tools.solconfig.model.SolConfigException;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -14,8 +13,8 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class Utils {
-    @Value("${solace.tools.solconfig.exitOnErrors:true}")
-    private static boolean exitOnErrors;
+    private static boolean exitOnErrors = Boolean.parseBoolean(System.getProperty("solace.tools.solconfig.exitOnErrors",
+            String.valueOf(true)));
     public static ObjectMapper objectMapper = new ObjectMapper();
 
     // TODO: move to SempSpec class
