@@ -47,7 +47,6 @@ public class Utils {
     }
 
     public static void errPrintlnAndExit(Exception e, String format, Object... args) {
-        // TODO if for mca, call errPrintlnAndException
         err(format, args);
 //        err("%n");
         if (Objects.nonNull(e)) {

@@ -126,6 +126,8 @@ public class SempClient {
         if (Optional.ofNullable(opaquePassword).map(String::isEmpty).orElse(true)) {
             return;
         }
+        SempSpec.setupByString(this.getBrokerSpec());
+
         if (SempSpec.getSempVersion().compareTo(new SempVersion("2.17")) < 0) {
             Utils.errPrintlnAndExit("The SEMPv2 version of this broker is %s, Opaque Password is only supported since version 9.6(sempVersion 2.17)",
                     SempSpec.getSempVersion());
@@ -280,6 +282,6 @@ public class SempClient {
     }
 
     public boolean isCloudInstance(){
-        return this.baseUrl.contains("messaging.solace.cloud");
+        return this.baseUrl.contains("messaging.solace.cloud") ||  this.baseUrl.contains("messaging.maasgo.net") |  this.baseUrl.contains("messaging.mymaas.net");
     }
 }

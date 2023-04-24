@@ -1,7 +1,6 @@
 package com.solace.tools.solconfig;
 
 import com.solace.tools.solconfig.model.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +26,7 @@ public class Commander {
         return commander;
     }
 
-    private void setupSempSpec() {
+    public void setupSempSpec() {
         SempSpec.setupByString(sempClient.getBrokerSpec());
     }
 
@@ -109,6 +108,16 @@ public class Commander {
         var commandList = new RestCommandList();
         configBroker.forEachChild(configObject -> configObject.generateCreateCommands(commandList));
         commandList.execute(sempClient, curlOnly);
+    }
+
+    private ConfigBroker getConfigBrokerFromMap(Map<String, Object> map) {
+        ConfigBroker configFromFile = new ConfigBroker();
+        configFromFile.addChildrenFromMap(map);
+        configFromFile.sortChildren();
+        configFromFile.setSempVersion(new SempVersion((String) map.get(SempSpec.SEMP_VERSION)));
+        configFromFile.setOpaquePassword((String) map.get((SempSpec.OPAQUE_PASSWORD)));
+        compareSempVersion(configFromFile);
+        return configFromFile;
     }
 
     private ConfigBroker getConfigBrokerFromFile(Path confPath) {
@@ -205,12 +214,15 @@ public class Commander {
         return configBroker;
     }
 
-    public void update(Path confPath, boolean isNoDelete) {
-        ConfigBroker configFile = getConfigBrokerFromFile(confPath);
+    public Map<String, Object> diff(Map<String, Object> map) {
+        ConfigBroker configFile = getConfigBrokerFromMap(map);
         exitOnObjectsNotExist(configFile);
+        return diff(configFile);
+    }
 
-        sempClient.setOpaquePassword(configFile.getOpaquePassword());
+    public Map<String, Object> diff(ConfigBroker configFile) {
         ConfigBroker configBroker = generateConfigFromBroker(configFile);
+        sempClient.setOpaquePassword(configFile.getOpaquePassword());
         List.of(configFile, configBroker).forEach(cb->{
             cb.removeChildrenObjects(ConfigObject::isReservedObject, ConfigObject::isDeprecatedObject);
             cb.removeAttributes(
@@ -221,12 +233,51 @@ public class Commander {
             cb.checkAttributeCombinations();
         });
 
-        if (sempClient.isCloudInstance()) {
-            // this is a cloud instance, so ignore the objects could not be updated by SEMPv2
-            logger.warn("Targeted broker is on Solace Cloud, objects {} will be ignored",
-                    SempSpec.SPEC_PATHS_OF_OBJECTS_OF_CLOUD_INSTANCE);
-            configFile.ignoreObjectsForCloudInstance();
-        }
+        var deleteCommandList = new RestCommandList();
+        var createCommandList = new RestCommandList();
+        var updateCommandList = new RestCommandList();
+        var enableCommandList = new RestCommandList();
+        configBroker.generateUpdateCommands(configFile, deleteCommandList, updateCommandList, createCommandList, enableCommandList);
+
+        Map<String, Object> diff = new HashMap<>();
+        diff.put("create", createCommandList);
+        diff.put("update", updateCommandList);
+        diff.put("delete", deleteCommandList);
+        diff.put("enable", enableCommandList);
+        return diff;
+    }
+
+    public void update(Map<String, Object> map, boolean isNoDelete) {
+        ConfigBroker configFile = getConfigBrokerFromMap(map);
+        exitOnObjectsNotExist(configFile);
+        update(configFile, isNoDelete);
+    }
+
+    public void update(Path confPath, boolean isNoDelete){
+        ConfigBroker configFile = getConfigBrokerFromFile(confPath);
+        exitOnObjectsNotExist(configFile);
+        update(configFile, isNoDelete);
+    }
+
+    public void update(ConfigBroker configFile, boolean isNoDelete) {
+        ConfigBroker configBroker = generateConfigFromBroker(configFile);
+        sempClient.setOpaquePassword(configFile.getOpaquePassword());
+        List.of(configFile, configBroker).forEach(cb->{
+            cb.removeChildrenObjects(ConfigObject::isReservedObject, ConfigObject::isDeprecatedObject);
+            cb.removeAttributes(
+                    AttributeType.PARENT_IDENTIFIERS,
+                    AttributeType.DEPRECATED,
+                    AttributeType.BROKER_SPECIFIC);
+            cb.removeAttributesWithDefaultValue();
+            cb.checkAttributeCombinations();
+        });
+
+//        if (sempClient.isCloudInstance()) {
+//            // this is a cloud instance, so ignore the objects could not be updated by SEMPv2
+//            logger.warn("Targeted broker is on Solace Cloud, objects {} will be ignored",
+//                    SempSpec.SPEC_PATHS_OF_OBJECTS_OF_CLOUD_INSTANCE);
+//            configFile.ignoreObjectsForCloudInstance();
+//        }
 
         var deleteCommandList = new RestCommandList();
         var createCommandList = new RestCommandList();
@@ -239,10 +290,10 @@ public class Commander {
             allCommands.addAll(deleteCommandList);
         }
         allCommands.addAll(enableCommandList);
-        if (allCommands.sieze()>0){
+        if (allCommands.size()>0){
             allCommands.execute(sempClient, curlOnly);
         }else {
-            Utils.errPrintlnAndExit("Configuration file %s is identical to the existing objects.", confPath.toAbsolutePath());
+            Utils.errPrintlnAndExit("Configurations are identical to the existing objects.");
         }
     }
 

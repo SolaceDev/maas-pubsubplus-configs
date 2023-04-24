@@ -111,7 +111,7 @@ public class RestCommandList {
         return this;
     }
 
-    public int sieze() {
+    public int size() {
         return commands.size();
     }
 }
