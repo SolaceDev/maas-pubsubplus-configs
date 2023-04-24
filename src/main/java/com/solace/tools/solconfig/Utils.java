@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class Utils {
     private static boolean exitOnErrors = Boolean.parseBoolean(System.getProperty("solace.tools.solconfig.exitOnErrors",
-            String.valueOf(true)));
+            String.valueOf(false)));
     public static ObjectMapper objectMapper = new ObjectMapper();
 
     // TODO: move to SempSpec class
