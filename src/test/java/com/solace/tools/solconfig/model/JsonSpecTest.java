@@ -5,6 +5,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.solace.tools.solconfig.Utils;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static com.solace.tools.solconfig.Utils.objectMapper;
 
+@Slf4j
 public class JsonSpecTest {
     private static JsonSpec jsonSpec;
     private static Object jsonDocument;
@@ -135,7 +137,8 @@ public class JsonSpecTest {
     })
     void testJsonPath(String path){
         Configuration conf = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS);
-        System.out.println(path + " -> " + JsonPath.using(conf).parse(jsonDocument).read(path));
+//        System.out.println(path + " -> " + JsonPath.using(conf).parse(jsonDocument).read(path));
+        log.debug( "{} -> {}", path, JsonPath.using(conf).parse(jsonDocument).read(path));
     }
 
 

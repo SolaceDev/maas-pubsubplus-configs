@@ -1,5 +1,6 @@
 package com.solace.tools.solconfig.model;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+@Slf4j
 public class SempSpecTest {
     @BeforeAll
     static void setup() throws IOException {
@@ -37,7 +39,7 @@ public class SempSpecTest {
 
     @Test
     void testOfJsonNode() {
-        SempSpec.sempSpecMap.keySet().forEach(System.out::println);
+        SempSpec.sempSpecMap.keySet().forEach(log::debug);
     }
 
     @ParameterizedTest

@@ -5,11 +5,17 @@ import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.solace.tools.solconfig.model.SolConfigException;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class Utils {
+    @Value("${solace.tools.solconfig.exitOnErrors:true}")
+    private static boolean exitOnErrors;
     public static ObjectMapper objectMapper = new ObjectMapper();
 
     // TODO: move to SempSpec class
@@ -28,11 +34,13 @@ public class Utils {
     }
 
     public static void log(String text) {
-        System.err.println(text);
+        log.debug(text);
+//        System.err.println(text);
     }
 
     public static void err(String format, Object... args) {
-        System.err.printf(format, args);
+//        System.err.printf(format, args);
+        log.error(String.format(format, args));
     }
 
     public static void errPrintlnAndExit(String format, Object... args) {
@@ -40,12 +48,18 @@ public class Utils {
     }
 
     public static void errPrintlnAndExit(Exception e, String format, Object... args) {
+        // TODO if for mca, call errPrintlnAndException
         err(format, args);
-        err("%n");
+//        err("%n");
         if (Objects.nonNull(e)) {
+            //TODO not to stacktrace
             e.printStackTrace();
         }
-        System.exit(1);
+        if (exitOnErrors) {
+            System.exit(1);
+        } else {
+            throw new SolConfigException("Error when executing solConfig command: " + String.format(format, args), e);
+        }
     }
 
     public static Set<Map.Entry<String, Object>> symmetricDiff(Set<Map.Entry<String, Object>> s1, Set<Map.Entry<String, Object>> s2) {
