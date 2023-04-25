@@ -16,13 +16,13 @@ public class PropertiesLoader {
                     .getClassLoader()
                     .getResourceAsStream(propertyFileName);
             if (inputStream == null) {
-                log.warn("Unable to find properties file: " + propertyFileName);
+                log.warn("Unable to find properties file: {}", propertyFileName);
                 return properties;
             }
             properties.load(inputStream);
             inputStream.close();
         } catch (IOException e) {
-            log.warn("Exception when loading properties file: " + propertyFileName);
+            log.warn("Exception when loading properties file: {}", propertyFileName);
         }
         return properties;
     }

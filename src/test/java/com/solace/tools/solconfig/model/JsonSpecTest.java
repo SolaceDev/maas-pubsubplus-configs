@@ -137,7 +137,6 @@ public class JsonSpecTest {
     })
     void testJsonPath(String path){
         Configuration conf = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS);
-//        System.out.println(path + " -> " + JsonPath.using(conf).parse(jsonDocument).read(path));
         log.debug( "{} -> {}", path, JsonPath.using(conf).parse(jsonDocument).read(path));
     }
 

@@ -138,13 +138,9 @@ public class Commander {
                     configFromFile.getSempVersion().getText(), SempSpec.getSempVersion().getText());
         }
         if (configFromFile.getSempVersion().compareTo(SempSpec.getSempVersion()) > 0) {
-//            System.out.printf("The sempVersion [%s] of the config file is newer than the broker's [%s], some objects/attributes may be not AVAILABLE!%n",
-//                    configFromFile.getSempVersion().getText(), SempSpec.getSempVersion().getText());
             log.debug("The sempVersion [{}] of the config file is newer than the broker's [{}], some objects/attributes may be not AVAILABLE!",
                     configFromFile.getSempVersion().getText(), SempSpec.getSempVersion().getText());
         } else if(configFromFile.getSempVersion().compareTo(SempSpec.getSempVersion()) < 0){
-//            System.out.printf("The sempVersion [%s] of the config file is older than the broker's [%s], some objects/attributes may be DEPRECATED!%n",
-//                    configFromFile.getSempVersion().getText(), SempSpec.getSempVersion().getText());
             log.debug("The sempVersion [{}] of the config file is older than the broker's [{}], some objects/attributes may be DEPRECATED!",
                     configFromFile.getSempVersion().getText(), SempSpec.getSempVersion().getText());
         }
@@ -298,31 +294,25 @@ public class Commander {
     }
 
     public void printSpec() {
-//        System.out.println(SempSpec.toPrettyString());
         log.debug(SempSpec.toPrettyString());
     }
 
     public void integrationTest() {
-//        System.out.println("## spec");
         log.debug("## spec");
         printSpec();
         var path = "examples/template/demo_vpn.json";
 
-//        System.out.println("## create "+path);
-        log.debug("## create "+path);
+        log.debug("## create {}", path);
         create(Path.of(path));
         var type = "msgVpns";
         var vpn = new String[] {"Demo"};
 
-//        System.out.printf("## backup %s %s%n", type, vpn[0]);
         log.debug("## backup {}} {}", type, vpn[0]);
         backup(type, vpn, false);
 
-//        System.out.println("## update "+path);
         log.debug("## update {}", path);
         update(Path.of("examples/template/demo_vpn.json"), false);
 
-//        System.out.printf("## delete %s %s%n", type, vpn[0]);
         log.debug("## delete {} {}", type, vpn[0]);
         delete(type, vpn);
     }

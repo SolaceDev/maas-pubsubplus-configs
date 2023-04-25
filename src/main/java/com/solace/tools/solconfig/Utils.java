@@ -33,11 +33,9 @@ public class Utils {
 
     public static void log(String text) {
         log.info(text);
-//        System.err.println(text);
     }
 
     public static void err(String format, Object... args) {
-//        System.err.printf(format, args);
         log.error(String.format(format, args));
     }
 
@@ -47,7 +45,6 @@ public class Utils {
 
     public static void errPrintlnAndExit(Exception e, String format, Object... args) {
         err(format, args);
-//        err("%n");
         if (Objects.nonNull(e)) {
             //TODO not to stacktrace
             e.printStackTrace();
