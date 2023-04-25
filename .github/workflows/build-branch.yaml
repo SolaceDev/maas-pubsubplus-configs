@@ -1,11 +1,12 @@
-name: Publish package to GitHub Packages
+name: build-branch
+
 on:
-  workflow_dispatch:
   push:
     branches-ignore:
       - 'develop'
+
 jobs:
-  publish:
+  build-branch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,8 +16,12 @@ jobs:
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/} | sed -e 's/\//_/g')"
           echo "::set-output name=sha_short::$(echo ${GITHUB_SHA::10})"
 
-      - name: Publish package
-        run: gradle -Pversion="${{ steps.extract_branch.outputs.branch }}-${{steps.extract_branch.outputs.sha_short}}-SNAPSHOT" build publish
+      - name: Set Release version env variable
+        run: |
+          echo "RELEASE_VERSION=${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_branch.outputs.sha_short }}" >> $GITHUB_ENV
+
+      - name: Build and Publish package
+        run: ./gradlew -Pversion="${{ env.RELEASE_VERSION }}-SNAPSHOT" build publish --refresh-dependencies
         env:
           GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
           GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
