@@ -271,6 +271,10 @@ public class SempClient {
             } else if (meta.getError().getCode() == SEMPError.NOT_FOUND.getValue()) {
                 result.put(entry.getKey(), false);
             } else {
+                String uri = meta.getRequest().getUri();
+                if (uri != null && uri.contains(SempSpec.OPAQUE_PASSWORD)) {
+                    uri.replace("Password=[^$]*", "Password=***");
+                }
                 Utils.errPrintlnAndExit((Exception) null, "%s %s%n%s%n",
                         HTTPMethod.GET,
                         entry.getValue(),
