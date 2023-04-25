@@ -1,11 +1,11 @@
-name: build-pr
+name: build-develop
 
 on:
   pull_request:
     types: [ 'opened', 'edited', 'reopened', 'synchronize' ]
 
 jobs:
-  build-pr:
+  build-develop:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
