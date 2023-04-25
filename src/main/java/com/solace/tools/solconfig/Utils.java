@@ -94,9 +94,9 @@ public class Utils {
     }
 
     public static boolean isExitOnErrors() {
-        if ("false".equalsIgnoreCase(properties.getProperty("solace.tools.solconfig.exitOnErrors"))) {
-            return false;
+        if ("true".equalsIgnoreCase(properties.getProperty("solace.tools.solconfig.exitOnErrors"))) {
+            return true;
         }
-        return true;
+        return false;
     }
 }
