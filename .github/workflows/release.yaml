@@ -1,4 +1,4 @@
-name: Release and Publish package to GitHub Packages
+name: Release and Publish
 on:
   workflow_dispatch:
     # Inputs the workflow accepts.
@@ -13,7 +13,7 @@ on:
         required: true
         default: true
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: 'write'
