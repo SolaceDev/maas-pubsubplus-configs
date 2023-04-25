@@ -16,6 +16,7 @@ public class Commander {
     @Getter @Setter
     private SempClient sempClient;
     @Setter private boolean curlOnly;
+    @Setter private boolean useTemplate;
 
     public static Commander ofSempClient(SempClient sempClient){
         Commander commander = new Commander();
@@ -110,7 +111,7 @@ public class Commander {
 
     private ConfigBroker getConfigBrokerFromFile(Path confPath) {
         ConfigBroker configFromFile = new ConfigBroker();
-        Map<String, Object> map = SempClient.readMapFromJsonFile(confPath);
+        Map<String, Object> map = SempClient.readMapFromJsonFile(confPath, this.useTemplate);
         configFromFile.addChildrenFromMap(map);
         configFromFile.sortChildren();
         configFromFile.setSempVersion(new SempVersion((String) map.get(SempSpec.SEMP_VERSION)));
