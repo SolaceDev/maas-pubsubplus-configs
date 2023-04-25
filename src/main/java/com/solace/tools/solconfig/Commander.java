@@ -269,13 +269,6 @@ public class Commander {
             cb.checkAttributeCombinations();
         });
 
-//        if (sempClient.isCloudInstance()) {
-//            // this is a cloud instance, so ignore the objects could not be updated by SEMPv2
-//            logger.warn("Targeted broker is on Solace Cloud, objects {} will be ignored",
-//                    SempSpec.SPEC_PATHS_OF_OBJECTS_OF_CLOUD_INSTANCE);
-//            configFile.ignoreObjectsForCloudInstance();
-//        }
-
         var deleteCommandList = new RestCommandList();
         var createCommandList = new RestCommandList();
         var updateCommandList = new RestCommandList();

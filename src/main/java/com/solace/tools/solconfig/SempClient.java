@@ -276,8 +276,8 @@ public class SempClient {
                 result.put(entry.getKey(), false);
             } else {
                 String uri = meta.getRequest().getUri();
-                if (uri != null && uri.contains(SempSpec.OPAQUE_PASSWORD)) {
-                    uri.replace("Password=[^$]*", "Password=***");
+                if (uri != null && uri.contains("Password=")) {
+                    meta.getRequest().setUri(uri.replace("Password=[^$]*", "Password=***"));
                 }
                 Utils.errPrintlnAndExit((Exception) null, "%s %s%n%s%n",
                         HTTPMethod.GET,
