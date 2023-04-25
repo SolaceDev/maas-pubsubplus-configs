@@ -16,6 +16,9 @@ jobs:
           echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/} | sed -e 's/\//_/g')"
           echo "::set-output name=sha_short::$(echo ${GITHUB_SHA::10})"
 
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
       - name: Run Whitesource Action
         uses: TheAxZim/Whitesource-Scan-Action@v1.0.0
         with:
