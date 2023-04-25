@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 ### Fixed
 - fix: don't treat subscriptions start with "#" as reserved Object
+- fix: retry the POST action if its dependencies are not found
+- fix: add " --use-template" option to avoid the conflicts between the template and the Substitution Expressions
+- fix: add '~' into the reserved characters
 
 ## [1.1.7]
 ### Added
@@ -17,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.6] - 2022-03-28
 ### Added
-- add add "__skipThisObject" attribute to skip objects while performing `update` command
+- add "__skipThisObject" attribute to skip objects while performing `update` command
 - add "--no-delete" option to command "update"
 ### Fixed
 
