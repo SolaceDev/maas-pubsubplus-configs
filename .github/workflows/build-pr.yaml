@@ -1,21 +1,20 @@
-name: build-branch
+name: build-pr
 
 on:
-  push:
-    branches-ignore:
-      - 'develop'
+  pull_request:
+    types: [ 'opened', 'edited', 'reopened', 'synchronize' ]
 
 jobs:
-  build-branch:
+  build-pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Extract branch name
+
+      - name: Extract PR title
         id: extract_branch
         run: |
-          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/} | sed -e 's/\//_/g')"
+          echo "##[set-output name=branch;]$(echo PR-${{ github.event.pull_request.number }})"
           echo "::set-output name=sha_short::$(echo ${GITHUB_SHA::10})"
-
 
       - name: Set Release version env variable
         run: |
