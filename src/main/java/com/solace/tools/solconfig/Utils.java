@@ -46,8 +46,7 @@ public class Utils {
     public static void errPrintlnAndExit(Exception e, String format, Object... args) {
         err(format, args);
         if (Objects.nonNull(e)) {
-            //TODO not to stacktrace
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         if (!isExitOnErrors()) {
             throw new SolConfigException("Error when executing solConfig command: " + String.format(format, args), e);

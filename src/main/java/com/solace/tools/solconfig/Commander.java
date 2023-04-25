@@ -307,7 +307,7 @@ public class Commander {
         var type = "msgVpns";
         var vpn = new String[] {"Demo"};
 
-        log.debug("## backup {}} {}", type, vpn[0]);
+        log.debug("## backup {} {}", type, vpn[0]);
         backup(type, vpn, false);
 
         log.debug("## update {}", path);
