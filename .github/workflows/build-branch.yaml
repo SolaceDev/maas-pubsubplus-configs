@@ -32,7 +32,7 @@ jobs:
           echo "RELEASE_VERSION=${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_branch.outputs.sha_short }}" >> $GITHUB_ENV
 
       - name: Build and Publish package
-        run: ./gradlew -Pversion="${{ env.RELEASE_VERSION }}-SNAPSHOT" build publish
+        run: ./gradlew -Pversion="${{ env.RELEASE_VERSION }}-SNAPSHOT" build publish --refresh-dependencies
         env:
           GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
           GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
