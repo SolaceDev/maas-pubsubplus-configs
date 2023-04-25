@@ -12,9 +12,6 @@ import java.util.Objects;
 @Slf4j
 public class RestCommandList {
 
-    private static boolean exitOnErrors = Boolean.parseBoolean(System.getProperty("solace.tools.solconfig.exitOnErrors",
-            String.valueOf(true)));
-
     class Command {
         private HTTPMethod method;
         private String resourcePath;
@@ -74,12 +71,11 @@ public class RestCommandList {
                     Utils.err("%s%n", SEMPError.ALREADY_EXISTS);
                 } else {
                     Utils.err("%n%s%s%n", Objects.nonNull(cmd.payload) ? cmd.payload + "\n" : "", meta.toString());
-                    if (exitOnErrors) {
-                        System.exit(1);
-                    } else {
+                    if (!Utils.isExitOnErrors()) {
                         throw new SolConfigException("Error executing command list: " +
                                 String.format("%n%s%s%n", Objects.nonNull(cmd.payload) ? cmd.payload + "\n" : "", meta));
                     }
+                    System.exit(1);
                 }
             }
         }

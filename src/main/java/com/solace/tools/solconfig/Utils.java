@@ -13,9 +13,8 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class Utils {
-    private static boolean exitOnErrors = Boolean.parseBoolean(System.getProperty("solace.tools.solconfig.exitOnErrors",
-            String.valueOf(false)));
     public static ObjectMapper objectMapper = new ObjectMapper();
+    public static Properties properties = PropertiesLoader.loadProperties("application.properties");
 
     // TODO: move to SempSpec class
     public static String getCollectionNameFromUri(String uri){
@@ -33,7 +32,7 @@ public class Utils {
     }
 
     public static void log(String text) {
-        log.debug(text);
+        log.info(text);
 //        System.err.println(text);
     }
 
@@ -53,11 +52,10 @@ public class Utils {
             //TODO not to stacktrace
             e.printStackTrace();
         }
-        if (exitOnErrors) {
-            System.exit(1);
-        } else {
+        if (!isExitOnErrors()) {
             throw new SolConfigException("Error when executing solConfig command: " + String.format(format, args), e);
         }
+        System.exit(1);
     }
 
     public static Set<Map.Entry<String, Object>> symmetricDiff(Set<Map.Entry<String, Object>> s1, Set<Map.Entry<String, Object>> s2) {
@@ -93,5 +91,12 @@ public class Utils {
             errPrintlnAndExit(e, "Unable to convert the object into the json format.");
         }
         return result;
+    }
+
+    public static boolean isExitOnErrors() {
+        if ("false".equalsIgnoreCase(properties.getProperty("solace.tools.solconfig.exitOnErrors"))) {
+            return false;
+        }
+        return true;
     }
 }

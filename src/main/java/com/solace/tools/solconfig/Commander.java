@@ -9,12 +9,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Slf4j
 public class Commander {
-    final Logger logger = LoggerFactory.getLogger(Commander.class);
     @Getter @Setter
     private SempClient sempClient;
     @Setter private boolean curlOnly;
@@ -31,7 +28,7 @@ public class Commander {
     }
 
     public ConfigBroker backup(String resourceType, String[] objectNames, boolean isKeepDefault){
-        log.debug("Doing broker config backup: resourceType={}, objectNames={}, isKeepDefault={}",
+        log.info("Starting broker config backup: resourceType={}, objectNames={}, isKeepDefault={}",
                 resourceType, objectNames, isKeepDefault);
         exitOnObjectsNotExist(resourceType, objectNames);
         ConfigBroker configBroker = generateConfigFromBroker(resourceType, objectNames);
@@ -176,7 +173,7 @@ public class Commander {
     }
 
     private void checkObjectsExistence(String resourceTypeFullName, List<String> objectNames, boolean existOn) {
-        log.debug("Checking if {} {} exist", resourceTypeFullName, objectNames);
+        log.info("Checking if {} {} exist", resourceTypeFullName, objectNames);
         var objects = sempClient.checkIfObjectsExist(resourceTypeFullName, objectNames);
         var resultSet = objects.stream()
                 .filter(e -> e.getValue() == existOn)
