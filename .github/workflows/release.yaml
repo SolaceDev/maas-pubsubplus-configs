@@ -5,11 +5,11 @@ on:
     inputs:
       releaseVersion:
         type: string
-        description: the maas-pubsubplus-configs release version to create, ex: 1.0.0
+        description: "the maas-pubsubplus-configs release version to create, example: 1.0.0"
         required: true
       nextSnapshotVersion:
         type: string
-        description: the maas-pubsubplus-configs next snapshot version to use, ex: 1.1.0-SNAPSHOT
+        description: "the maas-pubsubplus-configs next snapshot version to use, ex: 1.1.0-SNAPSHOT"
         required: true
       githubRelease:
         type: boolean
