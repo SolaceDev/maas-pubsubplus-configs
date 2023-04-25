@@ -7,10 +7,6 @@ on:
         type: string
         description: "the maas-pubsubplus-configs release version to create, example: 1.0.0"
         required: true
-      nextSnapshotVersion:
-        type: string
-        description: "the maas-pubsubplus-configs next snapshot version to use, ex: 1.1.0-SNAPSHOT"
-        required: true
       githubRelease:
         type: boolean
         description: Create github release
@@ -26,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Release package
-        run: gradle release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=${{ github.event.inputs.releaseVersion }} -Prelease.newVersion=${{ github.event.inputs.nextSnapshotVersion }}
+        run: ./gradlew -Pversion="${{ github.event.inputs.releaseVersion }}" build publish --refresh-dependencies
         env:
           GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
           GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
