@@ -1,8 +1,9 @@
 name: build-develop
 
 on:
-  pull_request:
-    types: [ 'opened', 'edited', 'reopened', 'synchronize' ]
+  push:
+    branches:
+      - 'develop'
 
 jobs:
   build-develop:
@@ -10,10 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Extract PR title
+      - name: Extract branch name
         id: extract_branch
         run: |
-          echo "##[set-output name=branch;]$(echo PR-${{ github.event.pull_request.number }})"
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/} | sed -e 's/\//_/g')"
           echo "::set-output name=sha_short::$(echo ${GITHUB_SHA::10})"
 
       - name: Set Release version env variable
@@ -21,7 +22,7 @@ jobs:
           echo "RELEASE_VERSION=${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_branch.outputs.sha_short }}" >> $GITHUB_ENV
 
       - name: Build and Publish package
-        run: gradle -Pversion="${{ env.RELEASE_VERSION }}-SNAPSHOT" build publish
+        run: ./gradlew -Pversion="${{ env.RELEASE_VERSION }}-SNAPSHOT" build publish --refresh-dependencies
         env:
           GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
           GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
