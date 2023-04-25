@@ -1,9 +1,7 @@
-name: Publish package to GitHub Packages
+name: Release and Publish package to GitHub Packages
 on:
   workflow_dispatch:
-  push:
-    branches-ignore:
-      - 'develop'
+
 jobs:
   publish:
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-name: build-branchon:
+name: build-branch
 
 on:
   push:
