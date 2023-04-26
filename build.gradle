@@ -34,6 +34,7 @@ jar {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+    exclude('**/logback.xml')
 }
 
 dependencies {
