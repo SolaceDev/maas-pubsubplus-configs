@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static com.solace.tools.solconfig.Utils.objectMapper;
 
-@Slf4j
+//@Slf4j
 public class JsonSpecTest {
     private static JsonSpec jsonSpec;
     private static Object jsonDocument;
@@ -137,7 +137,7 @@ public class JsonSpecTest {
     })
     void testJsonPath(String path){
         Configuration conf = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS);
-        log.debug( "{} -> {}", path, JsonPath.using(conf).parse(jsonDocument).read(path));
+//        log.debug( "{} -> {}", path, JsonPath.using(conf).parse(jsonDocument).read(path));
     }
 
 

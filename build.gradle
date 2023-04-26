@@ -34,7 +34,8 @@ jar {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-    { exclude('logback.xml', 'META-INF/services/ch.qos.logback.classic.spi.Configurator')}
+    exclude('logback.xml')
+//    { exclude('logback.xml', 'META-INF/services/ch.qos.logback.classic.spi.Configurator')}
 }
 
 dependencies {
@@ -48,7 +49,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
     implementation 'info.picocli:picocli:4.7.0'
     annotationProcessor 'info.picocli:picocli-codegen:4.7.0'
-    implementation 'ch.qos.logback:logback-classic:1.4.5'
+    compileOnly 'ch.qos.logback:logback-classic:1.4.5'
     implementation 'com.jayway.jsonpath:json-path:2.8.0'
     implementation 'org.freemarker:freemarker:2.3.31'
 }

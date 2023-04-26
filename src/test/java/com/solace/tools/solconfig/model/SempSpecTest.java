@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@Slf4j
+//@Slf4j
 public class SempSpecTest {
     @BeforeAll
     static void setup() throws IOException {
@@ -39,7 +39,7 @@ public class SempSpecTest {
 
     @Test
     void testOfJsonNode() {
-        SempSpec.sempSpecMap.keySet().forEach(log::debug);
+//        SempSpec.sempSpecMap.keySet().forEach(log::debug);
     }
 
     @ParameterizedTest
