@@ -5,7 +5,6 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.solace.tools.solconfig.Utils;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -17,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static com.solace.tools.solconfig.Utils.objectMapper;
 
-//@Slf4j
 public class JsonSpecTest {
     private static JsonSpec jsonSpec;
     private static Object jsonDocument;
+    Logger log = Logger.getLogger(JsonSpecTest.class.getName());
 
     @BeforeAll
     static void setup() throws IOException {
@@ -137,7 +137,7 @@ public class JsonSpecTest {
     })
     void testJsonPath(String path){
         Configuration conf = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS);
-//        log.debug( "{} -> {}", path, JsonPath.using(conf).parse(jsonDocument).read(path));
+        log.info(path + " -> " + JsonPath.using(conf).parse(jsonDocument).read(path));
     }
 
 
