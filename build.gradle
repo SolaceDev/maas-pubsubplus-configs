@@ -24,6 +24,7 @@ java {
 
 jar {
     archiveFileName = rootProject.name+".jar"
+    exclude('./src/main/resources/logback.xml')
     manifest {
         attributes "Main-Class": "com.solace.tools.solconfig.App",
                 'Implementation-Title': rootProject.name,
@@ -34,7 +35,6 @@ jar {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-    exclude('**/logback.xml')
 }
 
 dependencies {
