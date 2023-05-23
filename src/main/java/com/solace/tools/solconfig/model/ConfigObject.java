@@ -200,7 +200,6 @@ public class ConfigObject {
      * @return if this object is a reserved object.
      */
     public boolean isReservedObject() {
-
         List<String> excludeFromReservedObjectList = new ArrayList<>();
         List<String> excludeFromReservedObjectIdsList = new ArrayList<>();
 
@@ -214,17 +213,21 @@ public class ConfigObject {
             excludeFromReservedObjectIdsList = Arrays.asList(excludeFromReservedObjectIds.split(","));
         }
 
+        return isReservedObject(getObjectId(), this.specPath, excludeFromReservedObjectList, excludeFromReservedObjectIdsList);
+    }
+
+    public boolean isReservedObject(String objectId, String specPath,
+                                    List<String> excludeFromReservedObjectList,
+                                    List<String> excludeFromReservedObjectIdsList) {
+
         boolean isReserved = false;
-        String objectId = getObjectId();
-        String specPathString = this.specPath;
-        String specObjectPath = specPathString + PATH_DELIMITER + objectId;
+        String specObjectPath = specPath + PATH_DELIMITER + objectId;
 
         if(!reservedObjectsStartsWith.isBlank()) {
             isReserved = objectId.startsWith(reservedObjectsStartsWith);
         }
         if(!excludeFromReservedObjectList.isEmpty()) {
-
-            isReserved = isReserved && excludeFromReservedObjectList.stream().noneMatch(specPathString::equals);
+            isReserved = isReserved && excludeFromReservedObjectList.stream().noneMatch(specPath::equals);
         }
         if(!excludeFromReservedObjectIdsList.isEmpty()) {
             isReserved = isReserved && excludeFromReservedObjectIdsList.stream().noneMatch(specObjectPath::equals);
