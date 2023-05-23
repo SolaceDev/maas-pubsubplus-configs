@@ -4,7 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.solace.tools.solconfig.RestCommandList;
 import com.solace.tools.solconfig.Utils;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -146,8 +156,6 @@ public class ConfigObject {
      * [Reserved Characters](https://docs.solace.com/Admin/SEMP/SEMP-API-Protocol.htm)
      * > It is recommended that you encode all characters outside of the unreserved character set for event broker
      * > configuration object identifying attributes.
-     * @param input
-     * @return
      */
     static String percentEncoding(String input) {
         var bytes = input.getBytes(StandardCharsets.UTF_8);
@@ -442,12 +450,5 @@ public class ConfigObject {
     public void sortChildren() {
         getChildren().values().forEach(l -> l.sort(Comparator.comparing(ConfigObject::getObjectId)));
         forEachChild(ConfigObject::sortChildren);
-    }
-
-    public void ignoreObjectsForCloudInstance() {
-        if (SempSpec.SPEC_PATHS_OF_OBJECTS_OF_CLOUD_INSTANCE.contains(specPath)){
-            attributes.put(SempSpec.SKIP_THIS_OBJECT, true);
-        }
-        forEachChild(ConfigObject::ignoreObjectsForCloudInstance);
     }
 }
