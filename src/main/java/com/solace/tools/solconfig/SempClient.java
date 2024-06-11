@@ -191,7 +191,7 @@ public class SempClient {
      * @return a SempRespone with all data and links from the absUri
      */
     public SempResponse getCollectionWithAbsoluteUri(String absUri) {
-        log.info("Getting collection with absolute URI {}", absUri);
+        log.debug("Getting collection with absolute URI {}", absUri);
         List<SempResponse> responseList = new LinkedList<>();
         Optional<String> nextPageUri = Optional.of(absUri);
         while (nextPageUri.isPresent()) {
@@ -217,7 +217,7 @@ public class SempClient {
      * Send a SEMPv2 request, and return only the meta part of the response.
      */
     public SempMeta sendAndGetMeta(String method, String resourcePath, String payload) {
-        log.info("Getting meta for {} {}", method, resourcePath);
+        log.debug("Getting meta for {} {}", method, resourcePath);
         String uri = uriAddOpaquePassword(resourcePath);
         return SempMeta.ofString(sendWithResourcePath(method, uri, payload));
     }
