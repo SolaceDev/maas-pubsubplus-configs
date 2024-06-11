@@ -45,7 +45,7 @@ public class RestCommandList {
 
     public void execute(SempClient sempClient, boolean curlOnly) {
         if (curlOnly) {
-            log.debug(toCurlScript(sempClient));
+            log.info(toCurlScript(sempClient));
         } else {
             execute(sempClient, this.commands);
         }

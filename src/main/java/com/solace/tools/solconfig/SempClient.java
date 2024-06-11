@@ -179,7 +179,7 @@ public class SempClient {
     }
 
     public String getBrokerSpec() {
-        log.debug("Getting Broker Spec");
+        log.info("Getting Broker Spec");
         return sendWithResourcePath(HTTPMethod.GET.name(), "/spec", null);
     }
 
@@ -191,7 +191,6 @@ public class SempClient {
      * @return a SempRespone with all data and links from the absUri
      */
     public SempResponse getCollectionWithAbsoluteUri(String absUri) {
-        log.debug("Getting collection with absolute URI {}", absUri);
         List<SempResponse> responseList = new LinkedList<>();
         Optional<String> nextPageUri = Optional.of(absUri);
         while (nextPageUri.isPresent()) {
@@ -217,18 +216,17 @@ public class SempClient {
      * Send a SEMPv2 request, and return only the meta part of the response.
      */
     public SempMeta sendAndGetMeta(String method, String resourcePath, String payload) {
-        log.debug("Getting meta for {} {}", method, resourcePath);
+        log.info("Getting meta for {} {}", method, resourcePath);
         String uri = uriAddOpaquePassword(resourcePath);
         return SempMeta.ofString(sendWithResourcePath(method, uri, payload));
     }
 
     public String sendWithResourcePath(String method, String resourcePath, String payload) {
-        log.debug("Sending with resource path {} {}", method, resourcePath);
+        log.info("Sending with resource path {} {}", method, resourcePath);
         return sendWithAbsoluteURI(method, buildAbsoluteUri(resourcePath), payload);
     }
 
     private String sendWithAbsoluteURI(String method, String absUri, String payload) {
-        log.debug("Sending with absolute URI {} {}", method, absUri);
         var bp = Objects.isNull(payload) || payload.isEmpty() ?
                 BodyPublishers.noBody() :
                 BodyPublishers.ofString(payload);
@@ -252,7 +250,7 @@ public class SempClient {
                     "%s %s returns empty body",
                     method, absUri);
         }
-        log.debug("{} {}\n{}\n{}", method.toUpperCase(), absUri,
+        log.info("{} {}\n{}\n{}", method.toUpperCase(), absUri,
                 Objects.isNull(payload) || payload.isEmpty() ? "" : payload, body.get());
         return body.orElse(null);
     }
