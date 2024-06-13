@@ -224,6 +224,7 @@ public class SempClient {
     }
 
     private String sendWithAbsoluteURI(String method, String absUri, String payload) {
+        log.info("Sending with absolute URI {} {}", method, absUri);
         var bp = Objects.isNull(payload) || payload.isEmpty() ?
                 BodyPublishers.noBody() :
                 BodyPublishers.ofString(payload);
@@ -247,7 +248,7 @@ public class SempClient {
                     "%s %s returns empty body",
                     method, absUri);
         }
-        log.debug("{} {}\n{}\n{}", method.toUpperCase(), absUri,
+        log.info("{} {}\n{}\n{}", method.toUpperCase(), absUri,
                 Objects.isNull(payload) || payload.isEmpty() ? "" : payload, body.get());
         return body.orElse(null);
     }
@@ -317,9 +318,5 @@ public class SempClient {
             }
         });
         return result.entrySet();
-    }
-
-    public boolean isCloudInstance() {
-        return this.baseUrl.contains("messaging.solace.cloud") || this.baseUrl.contains("messaging.maasgo.net") | this.baseUrl.contains("messaging.mymaas.net");
     }
 }

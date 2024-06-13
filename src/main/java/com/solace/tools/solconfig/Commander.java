@@ -32,8 +32,9 @@ public class Commander {
         log.info("Starting broker config backup: resourceType={}, objectNames={}, isKeepDefault={}",
                 resourceType, objectNames, isKeepDefault);
         exitOnObjectsNotExist(resourceType, objectNames);
+        log.info("Generating broker config");
         ConfigBroker configBroker = generateConfigFromBroker(resourceType, objectNames);
-
+        log.info("removing children objects");
         configBroker.removeChildrenObjects(ConfigObject::isReservedObject, ConfigObject::isDeprecatedObject);
         configBroker.removeAttributes(AttributeType.PARENT_IDENTIFIERS, AttributeType.DEPRECATED);
         if (! isKeepDefault) {
@@ -84,6 +85,8 @@ public class Commander {
             .filter(e -> !e.getKey().equals("uri"))
             .forEach(e -> {
                 String collectionName = Utils.getCollectionNameFromUri(e.getValue());
+                // there will probably be a lot of these logs
+                log.info("Fetching Collection: {}", collectionName);
                 var sempResponse = sempClient.getCollectionWithAbsoluteUri(e.getValue());
                 if (sempResponse.isEmpty()){
                     return;
@@ -139,10 +142,10 @@ public class Commander {
                     configFromFile.getSempVersion().getText(), SempSpec.getSempVersion().getText());
         }
         if (configFromFile.getSempVersion().compareTo(SempSpec.getSempVersion()) > 0) {
-            log.debug("The sempVersion [{}] of the config file is newer than the broker's [{}], some objects/attributes may be not AVAILABLE!",
+            log.info("The sempVersion [{}] of the config file is newer than the broker's [{}], some objects/attributes may be not AVAILABLE!",
                     configFromFile.getSempVersion().getText(), SempSpec.getSempVersion().getText());
         } else if(configFromFile.getSempVersion().compareTo(SempSpec.getSempVersion()) < 0){
-            log.debug("The sempVersion [{}] of the config file is older than the broker's [{}], some objects/attributes may be DEPRECATED!",
+            log.info("The sempVersion [{}] of the config file is older than the broker's [{}], some objects/attributes may be DEPRECATED!",
                     configFromFile.getSempVersion().getText(), SempSpec.getSempVersion().getText());
         }
     }
@@ -288,26 +291,26 @@ public class Commander {
     }
 
     public void printSpec() {
-        log.debug(SempSpec.toPrettyString());
+        log.info(SempSpec.toPrettyString());
     }
 
     public void integrationTest() {
-        log.debug("## spec");
+        log.info("## spec");
         printSpec();
         var path = "examples/template/demo_vpn.json";
 
-        log.debug("## create {}", path);
+        log.info("## create {}", path);
         create(Path.of(path));
         var type = "msgVpns";
         var vpn = new String[] {"Demo"};
 
-        log.debug("## backup {} {}", type, vpn[0]);
+        log.info("## backup {} {}", type, vpn[0]);
         backup(type, vpn, false);
 
-        log.debug("## update {}", path);
+        log.info("## update {}", path);
         update(Path.of("examples/template/demo_vpn.json"), false);
 
-        log.debug("## delete {} {}", type, vpn[0]);
+        log.info("## delete {} {}", type, vpn[0]);
         delete(type, vpn);
     }
 }
