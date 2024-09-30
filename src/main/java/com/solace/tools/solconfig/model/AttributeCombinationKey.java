@@ -1,7 +1,10 @@
 package com.solace.tools.solconfig.model;
 
+import lombok.Data;
+
 import java.util.Objects;
 
+@Data
 public class AttributeCombinationKey implements Comparable<AttributeCombinationKey>{
     private String sempClassName;
     private String attributeName;

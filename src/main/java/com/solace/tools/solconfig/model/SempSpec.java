@@ -132,14 +132,25 @@ public class SempSpec {
     }
 
     public static String getTopResourceIdentifierKey(String resourceName) {
-        if (RES_ABBR.fullNames().contains(resourceName)){
-            return sempSpecMap.get("/"+resourceName).
-                    getAttributeNames(AttributeType.IDENTIFYING).get(0);
-        }else{
+        if (RES_ABBR.fullNames().contains(resourceName)) {
+            List<String> identifyingAttributes = sempSpecMap.get("/"+resourceName)
+                    .getAttributeNames(AttributeType.IDENTIFYING);
+            if (identifyingAttributes.isEmpty()) {
+                return getIdentifierKeyFromAttributeCombinationKeySempClassName(resourceName);
+            }
+            return identifyingAttributes.get(0);
+        } else {
             throw new IllegalArgumentException(
                     String.format("%s is NOT one of [%s]!",
                             resourceName, RES_ABBR.fullNames()));
         }
+    }
+
+    private static String getIdentifierKeyFromAttributeCombinationKeySempClassName(String resourceName) {
+        return sempSpecMap.get("/"+resourceName).getAttributeCombinations().entrySet().stream().map(attributeCombinationKeyListEntry ->
+                attributeCombinationKeyListEntry.getKey()).collect(Collectors.toList()).stream().filter(r ->
+                AttributeCombinationKey.TYPE.Requires.equals(r.getType())).findAny().map(identifierKey -> identifierKey.getSempClassName()).orElseThrow(
+                () -> new IllegalArgumentException(String.format("No top resource identifier key found for %s", resourceName)));
     }
 
     protected static SempSpec get(String specPath) {
