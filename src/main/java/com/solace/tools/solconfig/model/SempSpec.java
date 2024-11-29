@@ -147,10 +147,15 @@ public class SempSpec {
     }
 
     private static String getIdentifierKeyFromAttributeCombinationKeySempClassName(String resourceName) {
-        return sempSpecMap.get("/"+resourceName).getAttributeCombinations().entrySet().stream().map(attributeCombinationKeyListEntry ->
-                attributeCombinationKeyListEntry.getKey()).collect(Collectors.toList()).stream().filter(r ->
-                AttributeCombinationKey.TYPE.Requires.equals(r.getType())).findAny().map(identifierKey -> identifierKey.getSempClassName()).orElseThrow(
-                () -> new IllegalArgumentException(String.format("No top resource identifier key found for %s", resourceName)));
+        Map<AttributeCombinationKey, List<String>> attributeCombinationKeyListMap = sempSpecMap.get("/"+resourceName).getAttributeCombinations();
+        if (attributeCombinationKeyListMap != null) {
+            return attributeCombinationKeyListMap.entrySet().stream().map(attributeCombinationKeyListEntry ->
+                    attributeCombinationKeyListEntry.getKey()).collect(Collectors.toList()).stream().filter(r ->
+                    AttributeCombinationKey.TYPE.Requires.equals(r.getType())).findAny().map(identifierKey -> identifierKey.getSempClassName()).orElseThrow(
+                    () -> new IllegalArgumentException(String.format("No top resource identifier key found for %s", resourceName)));
+        } else {
+            throw new IllegalArgumentException(String.format("Cannot get top resource identifier key found for %s with no attribute combination key", resourceName));
+        }
     }
 
     protected static SempSpec get(String specPath) {
