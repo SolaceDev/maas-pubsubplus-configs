@@ -146,6 +146,13 @@ public class SempSpec {
         }
     }
 
+    /* With semp v2 2.38 and up, after parsing SempSpec, the identifier is not returned in the attributes, for example
+    sempSpecMap ->
+        /clientCertAuthorities -> {SempSpec}
+            attributes -> All
+            attributeCombinations -> {AttributeCombinationKey} "AttributeCombinationKey{sempClassName='clientCertAuthorities', attributeName='certAuthorityName', type=Requires}"
+    So we get from AttributeCombinationKey instead
+     */
     private static String getIdentifierKeyFromAttributeCombinationKeySempClassName(String resourceName) {
         Map<AttributeCombinationKey, List<String>> attributeCombinationKeyListMap = sempSpecMap.get("/"+resourceName).getAttributeCombinations();
         if (attributeCombinationKeyListMap != null) {
