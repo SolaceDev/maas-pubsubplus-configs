@@ -132,13 +132,36 @@ public class SempSpec {
     }
 
     public static String getTopResourceIdentifierKey(String resourceName) {
-        if (RES_ABBR.fullNames().contains(resourceName)){
-            return sempSpecMap.get("/"+resourceName).
-                    getAttributeNames(AttributeType.IDENTIFYING).get(0);
-        }else{
+        if (RES_ABBR.fullNames().contains(resourceName)) {
+            List<String> identifyingAttributes = sempSpecMap.get("/"+resourceName)
+                    .getAttributeNames(AttributeType.IDENTIFYING);
+            if (identifyingAttributes.isEmpty()) {
+                return getIdentifierKeyFromAttributeCombinationKeySempClassName(resourceName);
+            }
+            return identifyingAttributes.get(0);
+        } else {
             throw new IllegalArgumentException(
                     String.format("%s is NOT one of [%s]!",
                             resourceName, RES_ABBR.fullNames()));
+        }
+    }
+
+    /* With semp v2 2.38 and up, after parsing SempSpec, the identifier is not returned in the attributes, for example
+    sempSpecMap ->
+        /clientCertAuthorities -> {SempSpec}
+            attributes -> All
+            attributeCombinations -> {AttributeCombinationKey} "AttributeCombinationKey{sempClassName='clientCertAuthorities', attributeName='certAuthorityName', type=Requires}"
+    So we get from AttributeCombinationKey instead
+     */
+    private static String getIdentifierKeyFromAttributeCombinationKeySempClassName(String resourceName) {
+        Map<AttributeCombinationKey, List<String>> attributeCombinationKeyListMap = sempSpecMap.get("/"+resourceName).getAttributeCombinations();
+        if (attributeCombinationKeyListMap != null) {
+            return attributeCombinationKeyListMap.entrySet().stream().map(attributeCombinationKeyListEntry ->
+                    attributeCombinationKeyListEntry.getKey()).collect(Collectors.toList()).stream().filter(r ->
+                    AttributeCombinationKey.TYPE.Requires.equals(r.getType())).findAny().map(identifierKey -> identifierKey.getSempClassName()).orElseThrow(
+                    () -> new IllegalArgumentException(String.format("No top resource identifier key found for %s", resourceName)));
+        } else {
+            throw new IllegalArgumentException(String.format("Cannot get top resource identifier key found for %s with no attribute combination key", resourceName));
         }
     }
 
