@@ -191,7 +191,7 @@ public class Commander {
 
     private void exitOnObjectsNotExist(ConfigBroker configFile) {
         configFile.forEachChild(obj -> {
-            checkObjectsExistence(obj.getCollectionName(), List.of(obj.getObjectId()), true);
+            checkObjectsExistence(obj.getCollectionName(), List.of(obj.getObjectId()), false);
         });
     }
 
