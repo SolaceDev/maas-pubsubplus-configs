@@ -144,12 +144,25 @@ public class ConfigObject {
      * @return the obj-id
      */
     public String getObjectId() {
-        return sempSpec.getAttributeNames(AttributeType.IDENTIFYING).stream()
-                // Identifying attributes might not be required attributes, like "/msgVpns/bridges/remoteMsgVpns"
-                // If an identifying attributes is absent, use an empty string
-                .map(id -> Optional.ofNullable(attributes.get(id)).orElse("").toString())
-                .map(ConfigObject::percentEncoding)
-                .collect(Collectors.joining(","));
+        if(sempSpec.getAttributeNames(AttributeType.IDENTIFYING).size() == 0){
+            String keyAttribute = sempSpec.getAttributeCombinations().entrySet().stream().map(attributeCombinationKeyListEntry ->
+                    attributeCombinationKeyListEntry.getKey()).collect(Collectors.toList()).stream().filter(r ->
+                    AttributeCombinationKey.TYPE.Requires.equals(r.getType())).findAny().map(identifierKey -> identifierKey.getSempClassName()).orElseThrow(
+                    () -> new IllegalArgumentException(String.format("No top resource identifier key found for %s")));
+            return List.of(keyAttribute).stream()
+                    // Identifying attributes might not be required attributes, like "/msgVpns/bridges/remoteMsgVpns"
+                    // If an identifying attributes is absent, use an empty string
+                    .map(id -> Optional.ofNullable(attributes.get(id)).orElse("").toString())
+                    .map(ConfigObject::percentEncoding)
+                    .collect(Collectors.joining(","));
+        } else {
+            return sempSpec.getAttributeNames(AttributeType.IDENTIFYING).stream()
+                    // Identifying attributes might not be required attributes, like "/msgVpns/bridges/remoteMsgVpns"
+                    // If an identifying attributes is absent, use an empty string
+                    .map(id -> Optional.ofNullable(attributes.get(id)).orElse("").toString())
+                    .map(ConfigObject::percentEncoding)
+                    .collect(Collectors.joining(","));
+        }
     }
 
     /**
