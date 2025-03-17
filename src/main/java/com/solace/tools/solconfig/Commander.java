@@ -176,7 +176,7 @@ public class Commander {
         log.info("Checking if {} {} exist", resourceTypeFullName, objectNames);
         var objects = sempClient.checkIfObjectsExist(resourceTypeFullName, objectNames);
         var resultSet = objects.stream()
-                .filter(e -> e.getValue() != existOn)
+                .filter(e -> e.getValue() == existOn)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
         if (resultSet.isEmpty()) {
@@ -191,11 +191,7 @@ public class Commander {
 
     private void exitOnObjectsNotExist(ConfigBroker configFile) {
         configFile.forEachChild(obj -> {
-            String objectId = obj.getObjectId();
-//            if(objectId.isEmpty()) {
-//                objectId = obj.attributes.get("certAuthorityName");
-//            }
-            checkObjectsExistence(obj.getCollectionName(), List.of(objectId), false);
+            checkObjectsExistence(obj.getCollectionName(), List.of(obj.getObjectId()), true);
         });
     }
 
