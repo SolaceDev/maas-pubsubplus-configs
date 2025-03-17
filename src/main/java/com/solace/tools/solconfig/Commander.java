@@ -250,13 +250,11 @@ public class Commander {
 
     public void update(Map<String, Object> map, boolean isNoDelete) {
         ConfigBroker configFile = getConfigBrokerFromMap(map);
-        exitOnObjectsNotExist(configFile);
         update(configFile, isNoDelete);
     }
 
     public void update(Path confPath, boolean isNoDelete){
         ConfigBroker configFile = getConfigBrokerFromFile(confPath);
-        exitOnObjectsNotExist(configFile);
         update(configFile, isNoDelete);
     }
 
