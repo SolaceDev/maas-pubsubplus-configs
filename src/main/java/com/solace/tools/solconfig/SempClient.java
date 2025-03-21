@@ -10,7 +10,14 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.Authenticator;
@@ -40,16 +47,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509ExtendedTrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SempClient {
@@ -224,7 +221,7 @@ public class SempClient {
     }
 
     private String sendWithAbsoluteURI(String method, String absUri, String payload) {
-        log.info("Sending with absolute URI {} {}", method, absUri);
+        log.info("Sending with absolute URI {} {}", method, sanitizeUri(absUri));
         var bp = Objects.isNull(payload) || payload.isEmpty() ?
                 BodyPublishers.noBody() :
                 BodyPublishers.ofString(payload);
@@ -239,18 +236,26 @@ public class SempClient {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (InterruptedException | IOException e) {
             Utils.errPrintlnAndExit(e, "%s %s with playload:%n%s%n%s",
-                    method.toUpperCase(), absUri, payload, e.toString());
+                    method.toUpperCase(), sanitizeUri(absUri), sanitizeJsonBody(payload), e.toString());
         }
         var body = Optional.ofNullable(response)
                 .map(HttpResponse::body);
         if (body.isEmpty() || body.get().isEmpty()) {
             Utils.errPrintlnAndExit((Exception) null,
                     "%s %s returns empty body",
-                    method, absUri);
+                    method, sanitizeUri(absUri));
         }
-        log.info("{} {}\n{}\n{}", method.toUpperCase(), absUri,
-                Objects.isNull(payload) || payload.isEmpty() ? "" : payload, body.get());
+        log.info("{} {}\n{}\n{}", method.toUpperCase(), sanitizeUri(absUri),
+                Objects.isNull(payload) || payload.isEmpty() ? "" : sanitizeJsonBody(payload), sanitizeJsonBody(body.get()));
         return body.orElse(null);
+    }
+
+    private String sanitizeUri(String input) {
+        return Utils.sanitizeUrl(input);
+    }
+
+    private String sanitizeJsonBody(String input) {
+        return Utils.sanitizeBody(input);
     }
 
 
