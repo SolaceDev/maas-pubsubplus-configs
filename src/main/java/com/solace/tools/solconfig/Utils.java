@@ -5,10 +5,16 @@ import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.solace.tools.solconfig.model.SempSpec;
 import com.solace.tools.solconfig.model.SolConfigException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -16,17 +22,36 @@ public class Utils {
     public static ObjectMapper objectMapper = new ObjectMapper();
     public static Properties properties = PropertiesLoader.loadProperties("application.properties");
 
+    public static String sanitizeUrl(String data) {
+        if (data != null && data.contains(SempSpec.OPAQUE_PASSWORD + "=")) {
+            return data.replaceAll("(opaquePassword=)[^&\"]*([&\"]|$)", "$1*****$2");
+        }
+        return data;
+    }
+
+    public static String sanitizeBody(String body) {
+        if (body == null) {
+            return null;
+        }
+
+        if(body.toLowerCase().contains("password")){
+            return "Sensitive data, omitted for logging";
+        }
+
+        return body;
+    }
+
     // TODO: move to SempSpec class
-    public static String getCollectionNameFromUri(String uri){
+    public static String getCollectionNameFromUri(String uri) {
         String[] items = uri.split("/");
-        return items[items.length-1].split("\\?")[0];
+        return items[items.length - 1].split("\\?")[0];
     }
 
     public static Optional<String> getFirstMatch(String input, Pattern re) {
         var m = re.matcher(input);
         if (m.find()) {
             return Optional.of(m.group(1));
-        }else {
+        } else {
             return Optional.empty();
         }
     }
