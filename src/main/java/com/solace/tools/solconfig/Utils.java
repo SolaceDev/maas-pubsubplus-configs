@@ -10,6 +10,7 @@ import com.solace.tools.solconfig.model.SolConfigException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,14 +31,25 @@ public class Utils {
     }
 
     public static String sanitizeBody(String body) {
+        List<String> sensitiveStrings = List.of(
+                "password",
+                "begin certificate",
+                // Haven't actually seen the following, AI generated them
+                // trying to guess other sensitive data
+                "token",
+                "apiKey",
+                "api_secret",
+                "api_secret_key"
+        );
         if (body == null) {
             return null;
         }
 
-        if(body.toLowerCase().contains("password")){
-            return "Sensitive data, omitted for logging";
+        for (String sensitiveString : sensitiveStrings) {
+            if (body.toLowerCase().contains(sensitiveString)) {
+                return "Sensitive data, omitted for logging";
+            }
         }
-
         return body;
     }
 
