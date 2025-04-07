@@ -51,7 +51,7 @@ public class Utils {
         for (String sensitiveString : sensitiveStrings) {
             if (body.toLowerCase().contains(sensitiveString)) {
                 log.info(Markers.append("sensitive_string", sensitiveString),
-                        "Sensitive data found in body");
+                        "Sensitive data found in body. string found: {}", sensitiveString);
                 return "Sensitive data, omitted for logging";
             }
         }
