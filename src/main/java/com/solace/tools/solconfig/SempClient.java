@@ -60,13 +60,16 @@ public class SempClient {
     @Getter
     private final String adminPwd;
     @Getter
+    private String dumpPath;
+    @Getter
     private String opaquePassword;
     private final HttpClient httpClient;
 
-    public SempClient(String adminUrl, String adminUser, String adminPwd, boolean insecure, Path cacert) {
+    public SempClient(String adminUrl, String adminUser, String adminPwd, boolean insecure, Path cacert, String dumpPath) {
         this.baseUrl = adminUrl + CONFIG_BASE_PATH;
         this.adminUser = adminUser;
         this.adminPwd = adminPwd;
+        this.dumpPath = dumpPath;
 
         var b = HttpClient.newBuilder();
         if (insecure) {
