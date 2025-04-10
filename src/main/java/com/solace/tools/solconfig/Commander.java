@@ -50,6 +50,13 @@ public class Commander {
     public void dumpBackup(String resourceType, String[] objectNames, boolean isKeepDefault, String outputPath){
         ConfigBroker backup = backup(resourceType, objectNames, isKeepDefault);
         Path path = Path.of(outputPath);
+        try {
+            if (path.getParent() != null) {
+                Files.createDirectories(path.getParent());
+            }
+        } catch (IOException e) {
+            log.warn("Failed to create parent directories: {}", e.getMessage());
+        }
         printConfigBrokerToFile(backup, path);
     }
 
