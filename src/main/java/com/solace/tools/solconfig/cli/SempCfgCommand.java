@@ -32,6 +32,9 @@ public class SempCfgCommand implements Callable<Integer> {
     @Option(names = {"-H", "--host"}, description = "URL to access the management endpoint of the broker")
     private String adminHost = "http://localhost:8080";
 
+    @Option(names = {"--dump-path"}, description = "The filepath to dump the configuration")
+    private String dumpPath = "";
+
     @Option(names = {"-u", "--admin-user"}, description = "The username of the management user")
     private String adminUser = "admin";
 
@@ -68,7 +71,7 @@ public class SempCfgCommand implements Callable<Integer> {
             adminHost = adminHost.substring(0, adminHost.length()-1);
         }
 
-        commander = Commander.ofSempClient(new SempClient(adminHost, adminUser, adminPwd, insecure, cacert));
+        commander = Commander.ofSempClient(new SempClient(adminHost, adminUser, adminPwd, insecure, cacert, dumpPath));
         commander.setCurlOnly(curlOnly);
         commander.setUseTemplate(useTemplate);
     }
@@ -79,7 +82,8 @@ public class SempCfgCommand implements Callable<Integer> {
                 "adminHost='" + adminHost + '\'' +
                 ", adminUser='" + adminUser + '\'' +
                 ", adminPwd='" + adminPwd + '\'' +
-                ", curlOnly=" + curlOnly +
+                ", curlOnly=" + curlOnly + '\'' +
+                ", dumpPath='" + dumpPath +
                 '}';
     }
 
