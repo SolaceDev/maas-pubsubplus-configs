@@ -17,6 +17,9 @@ public class DumpBackupCommand extends SubCommand{
     @CommandLine.Option(names = {"-O", "--opaque-password"},
             description = "The opaquePassword for receiving and updating opaque properties like the password of Client Usernames")
     private String opaquePassword;
+    @CommandLine.Option(names = "--dump-path", 
+            description = "The filepath to dump the configuration")
+    private String dumpPath= "./tmp/dump.json";
     @CommandLine.Option(names = {"-D", "--keep-default"}, description = "Whether to Keep attributes with a default value")
     private boolean isKeepDefault = false;
 
@@ -33,7 +36,7 @@ public class DumpBackupCommand extends SubCommand{
     protected Integer execute() {
         Commander commander = parentCommand.commander;
         commander.getSempClient().setOpaquePassword(opaquePassword);
-        commander.dumpBackup(resourceType.getFullName(), objectNames, isKeepDefault, commander.getSempClient().getDumpPath());
+        commander.dumpBackup(resourceType.getFullName(), objectNames, isKeepDefault, dumpPath);
         return 0;
     }
 }
