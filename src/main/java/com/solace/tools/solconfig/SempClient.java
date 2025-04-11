@@ -65,6 +65,29 @@ public class SempClient {
     private String opaquePassword;
     private final HttpClient httpClient;
 
+    public SempClient(String adminUrl, String adminUser, String adminPwd, boolean insecure, Path cacert) {
+        this.baseUrl = adminUrl + CONFIG_BASE_PATH;
+        this.adminUser = adminUser;
+        this.adminPwd = adminPwd;
+
+        var b = HttpClient.newBuilder();
+        if (insecure) {
+            Optional.ofNullable(getInscureSSLContext()).ifPresent(b::sslContext);
+        } else if (Objects.nonNull(cacert)) {
+            Optional.ofNullable(getSSLContextFrom(cacert)).ifPresent(b::sslContext);
+        }
+        this.httpClient = b
+                .version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(Duration.ofSeconds(10))
+                .authenticator(new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(adminUser, adminPwd.toCharArray());
+                    }
+                })
+                .build();
+    }
+
     public SempClient(String adminUrl, String adminUser, String adminPwd, boolean insecure, Path cacert, String dumpPath) {
         this.baseUrl = adminUrl + CONFIG_BASE_PATH;
         this.adminUser = adminUser;
