@@ -33,10 +33,7 @@ public class BackupCommand extends SubCommand {
     protected Integer execute() {
         Commander commander = parentCommand.commander;
         commander.getSempClient().setOpaquePassword(opaquePassword);
-        // Check if the dump path is set and not empty
-        String dumpPath = commander.getSempClient().getDumpPath();
-        if (dumpPath.isBlank()) commander.backup(resourceType.getFullName(), objectNames, isKeepDefault);
-        else commander.dumpBackup(resourceType.getFullName(), objectNames, isKeepDefault, dumpPath);
+        commander.backup(resourceType.getFullName(), objectNames, isKeepDefault);
         return 0;
     }
 }
