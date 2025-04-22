@@ -1,4 +1,3 @@
-
 plugins {
     id "java"
     id "io.freefair.lombok" version "6.6.3"
@@ -11,7 +10,7 @@ repositories {
     mavenCentral()
 }
 
-task nativeAgent(type:Exec) {
+task nativeAgent(type: Exec) {
     commandLine 'mkdir', '-p', './src/main/resources/META-INF/native-image/solconfig'
     commandLine 'java', '-agentlib:native-image-agent=config-output-dir=./src/main/resources/META-INF/native-image/solconfig', '-jar', 'build/libs/solconfig.jar', 'test'
 }
@@ -23,7 +22,7 @@ java {
 }
 
 jar {
-    archiveFileName = rootProject.name+".jar"
+    archiveFileName = rootProject.name + ".jar"
     manifest {
         attributes "Main-Class": "com.solace.tools.solconfig.App",
                 'Implementation-Title': rootProject.name,
@@ -48,9 +47,10 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
     implementation 'info.picocli:picocli:4.7.0'
     annotationProcessor 'info.picocli:picocli-codegen:4.7.0'
-    compileOnly 'ch.qos.logback:logback-classic:1.4.5'
+    implementation 'ch.qos.logback:logback-classic:1.5.18'
     implementation 'com.jayway.jsonpath:json-path:2.8.0'
     implementation 'org.freemarker:freemarker:2.3.31'
+    implementation("net.logstash.logback:logstash-logback-encoder:6.6")
 }
 
 tasks.named('test') {
