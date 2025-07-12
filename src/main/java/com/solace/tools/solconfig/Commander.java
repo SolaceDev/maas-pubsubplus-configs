@@ -266,7 +266,7 @@ public class Commander {
                     AttributeType.PARENT_IDENTIFIERS,
                     AttributeType.DEPRECATED,
                     AttributeType.BROKER_SPECIFIC);
-            cb.removeAttributesWithDefaultValue();
+//            cb.removeAttributesWithDefaultValue();
             cb.checkAttributeCombinations();
         });
 
