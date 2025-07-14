@@ -11,9 +11,7 @@ import com.solace.tools.solconfig.Utils;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class JsonSpec {
     private DocumentContext jsonPathCtx;
     private List<String> pathsList;
@@ -193,15 +191,6 @@ Map:
                 .filter(array -> array.length==4) // Class|Attribute|Requires|Conflicts
                 .map(Arrays::asList)
                 .collect(Collectors.toList());
-//        if (table.size() == 0 && (description.startsWith("Create a REST Consumer object"))) {
-//            log.info("Found 'Create a REST Consumer object' in the description, " +
-//                    "which is not supported by SEMPv2, so return empty map.");
-//            table = description.lines()
-//                    .map(line -> line.split("\\|", -1))
-//                    .filter(array -> array.length==3) // Class|Attribute|Requires
-//                    .map(Arrays::asList)
-//                    .collect(Collectors.toList());
-//        }
 
         var result = new TreeMap<AttributeCombinationKey, List<String>>();
         if (table.size() == 0) {
@@ -217,13 +206,11 @@ Map:
                 result.put(new AttributeCombinationKey(line.get(0), line.get(1), AttributeCombinationKey.TYPE.Requires),
                         attributes);
             }
-//            if (line.size() >= 4) {
             attributes = Arrays.asList(line.get(3).split(",").clone());
             if (attributes.size()>0 && attributes.get(0).length()>0){
                 result.put(new AttributeCombinationKey(line.get(0), line.get(1), AttributeCombinationKey.TYPE.Conflicts),
                         attributes);
             }
-//            }
         }
 
         return result;
