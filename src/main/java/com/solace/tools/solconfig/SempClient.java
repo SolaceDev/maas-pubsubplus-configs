@@ -45,16 +45,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.solace.tools.solconfig.Utils.properties;
 
 @Slf4j
 public class SempClient {
     private static final String CONFIG_BASE_PATH = "/SEMP/v2/config";
     public static final int HTTP_OK = 200;
-    private static final String DEFAULT_PAGINATION_COUNT = "10";
-    private final String paginationCount;
+    
+    private final String paginationCount = properties.getProperty("solace.tools.solconfig.pagination.count", "10");
 
     @Getter
     private final String baseUrl;
@@ -70,9 +71,6 @@ public class SempClient {
         this.baseUrl = adminUrl + CONFIG_BASE_PATH;
         this.adminUser = adminUser;
         this.adminPwd = adminPwd;
-        
-        Properties properties = PropertiesLoader.loadProperties("application.properties");
-        this.paginationCount = properties.getProperty("solace.tools.solconfig.pagination.count", DEFAULT_PAGINATION_COUNT);
 
         var b = HttpClient.newBuilder();
         if (insecure) {
