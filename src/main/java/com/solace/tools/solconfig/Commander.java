@@ -247,17 +247,17 @@ public class Commander {
         return diff;
     }
 
-    public void update(Map<String, Object> map, boolean isNoDelete) {
+    public void update(Map<String, Object> map, boolean isNoDelete, boolean isKeepDefault) {
         ConfigBroker configFile = getConfigBrokerFromMap(map);
-        update(configFile, isNoDelete);
+        update(configFile, isNoDelete, isKeepDefault);
     }
 
     public void update(Path confPath, boolean isNoDelete){
         ConfigBroker configFile = getConfigBrokerFromFile(confPath);
-        update(configFile, isNoDelete);
+        update(configFile, isNoDelete, false);
     }
 
-    public void update(ConfigBroker configFile, boolean isNoDelete) {
+    public void update(ConfigBroker configFile, boolean isNoDelete, boolean isKeepDefault) {
         ConfigBroker configBroker = generateConfigFromBroker(configFile);
         sempClient.setOpaquePassword(configFile.getOpaquePassword());
         List.of(configFile, configBroker).forEach(cb->{
@@ -266,7 +266,9 @@ public class Commander {
                     AttributeType.PARENT_IDENTIFIERS,
                     AttributeType.DEPRECATED,
                     AttributeType.BROKER_SPECIFIC);
-            cb.removeAttributesWithDefaultValue();
+            if (! isKeepDefault) {
+                cb.removeAttributesWithDefaultValue();
+            }
             cb.checkAttributeCombinations();
         });
 

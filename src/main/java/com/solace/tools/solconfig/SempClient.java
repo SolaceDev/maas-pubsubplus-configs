@@ -48,10 +48,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.solace.tools.solconfig.Utils.properties;
+
 @Slf4j
 public class SempClient {
     private static final String CONFIG_BASE_PATH = "/SEMP/v2/config";
     public static final int HTTP_OK = 200;
+    
+    private final String paginationCount = properties.getProperty("solace.tools.solconfig.pagination.count", "10");
 
     @Getter
     private final String baseUrl;
@@ -174,6 +178,11 @@ public class SempClient {
         var q = (uri.contains("?") ? "&" : "?") + SempSpec.OPAQUE_PASSWORD + "=" + opaquePassword;
         return uri + q;
     }
+    
+    private String uriAddPaginationCount(String uri) {
+        var q = (uri.contains("?") ? "&" : "?") + "count=" + paginationCount;
+        return uri + q;
+    }
 
     public String getBrokerSpec() {
         return sendWithResourcePath(HTTPMethod.GET.name(), "/spec", null);
@@ -188,7 +197,8 @@ public class SempClient {
      */
     public SempResponse getCollectionWithAbsoluteUri(String absUri) {
         List<SempResponse> responseList = new LinkedList<>();
-        Optional<String> nextPageUri = Optional.of(absUri);
+        String initialUri = uriAddPaginationCount(absUri);
+        Optional<String> nextPageUri = Optional.of(initialUri);
         while (nextPageUri.isPresent()) {
             SempResponse resp = SempResponse.ofString(sendWithAbsoluteURI("GET", uriAddOpaquePassword(nextPageUri.get()), null));
             responseList.add(resp);

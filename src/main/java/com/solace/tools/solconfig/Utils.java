@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.solace.tools.solconfig.model.SempSpec;
 import com.solace.tools.solconfig.model.SolConfigException;
 import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.marker.Markers;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +40,9 @@ public class Utils {
                 "token",
                 "apiKey",
                 "api_secret",
-                "api_secret_key"
+                "api_secret_key",
+                "privatekey",
+                "private key"
         );
         if (body == null) {
             return null;
@@ -47,6 +50,8 @@ public class Utils {
 
         for (String sensitiveString : sensitiveStrings) {
             if (body.toLowerCase().contains(sensitiveString)) {
+                log.info(Markers.append("sensitive_string", sensitiveString),
+                        "Sensitive data found in body. string found: {}", sensitiveString);
                 return "Sensitive data, omitted for logging";
             }
         }
