@@ -50,7 +50,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
     implementation 'info.picocli:picocli:4.7.0'
     annotationProcessor 'info.picocli:picocli-codegen:4.7.0'
-    implementation 'ch.qos.logback:logback-classic:1.5.18'
+    implementation 'ch.qos.logback:logback-classic:1.5.19'
     implementation 'com.jayway.jsonpath:json-path:2.8.0'
     implementation 'org.freemarker:freemarker:2.3.31'
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
