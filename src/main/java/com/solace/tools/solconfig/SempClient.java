@@ -206,6 +206,12 @@ public class SempClient {
         }
         // Combine all paging results into one SempResponse
         Optional<SempResponse> result = responseList.stream().reduce((r1, r2) -> {
+            if(r1.getLinks() == null){
+                r1.setLinks(new LinkedList<>());
+            }
+            if(r1.getData() == null){
+                r1.setData(new LinkedList<>());
+            }
             Optional<List<Map<String, Object>>> dataOpt = Optional.ofNullable(r2.getData());
             Optional<List<Map<String, String>>> dataLinks = Optional.ofNullable(r2.getLinks());
             if (dataOpt.isPresent() && dataLinks.isPresent()) {
