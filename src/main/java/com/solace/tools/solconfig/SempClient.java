@@ -205,10 +205,17 @@ public class SempClient {
             nextPageUri = resp.getNextPageUri();
         }
         // Combine all paging results into one SempResponse
-        var result = responseList.stream().reduce((r1, r2) -> {
-            r1.getData().addAll(r2.getData());
-            r1.getLinks().addAll(r2.getLinks());
-            r1.setMeta(r2.getMeta());
+        Optional<SempResponse> result = responseList.stream().reduce((r1, r2) -> {
+            Optional<List<Map<String, Object>>> dataOpt = Optional.ofNullable(r2.getData());
+            Optional<List<Map<String, String>>> dataLinks = Optional.ofNullable(r2.getLinks());
+            if (dataOpt.isPresent() && dataLinks.isPresent()) {
+                // need to be together because they form a page
+                r1.getData().addAll(dataOpt.get());
+                r1.getLinks().addAll(dataLinks.get());
+            }
+            // I don't think this is ever read. Kept for backwards compatibility
+            Optional.ofNullable(r2.getMeta())
+                    .ifPresent(r1::setMeta);
             return r1;
         });
         return result.orElse(null);
