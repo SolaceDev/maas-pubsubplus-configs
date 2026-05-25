@@ -18,13 +18,11 @@ public class SempVersion implements Comparable<SempVersion>{
         String[] v = version.split("\\.");
 
         // both "2.22" and "2.11.00091010036" are legal version, check https://github.com/flyisland/solconfig/issues/3
-        // Dev-build brokers report a version like "100.0SOL-143449.0.7010" — the minor segment
-        // carries a branch/ticket suffix.  Use parseLeadingInt so we accept those strings and
-        // treat them as their leading numeric value (e.g. "0SOL-143449" → 0).
         if (v.length < 2) {
             Utils.errPrintlnAndExit(new IllegalArgumentException(version+" is an illegal SEMPv2 version."),"Unable to new a SempVersion object");
         }
         try {
+            // dev-build minor segments like "0SOL-143449" or "0main" parse to their leading int (0)
             number = parseLeadingInt(v[0]) * 1000 + parseLeadingInt(v[1]);
         }catch (NumberFormatException e){
             Utils.errPrintlnAndExit(new IllegalArgumentException(version+" is an illegal SEMPv2 version."),"Unable to new a SempVersion object");

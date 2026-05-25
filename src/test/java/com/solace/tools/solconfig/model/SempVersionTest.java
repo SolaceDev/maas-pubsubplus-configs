@@ -66,6 +66,33 @@ class SempVersionTest {
         assertEquals(expectedSign, Integer.signum(result));
     }
 
+    // Dev-build brokers report minor segments like "0SOL-143449" or "0main"; these should
+    // parse without throwing and compute the same number as the plain numeric equivalent.
+    @ParameterizedTest
+    @CsvSource({
+            "100.0main.0.7706, 100.0",
+            "100.0SOL-143449.0.7010, 100.0"
+    })
+    void devBuildMinorSegment_parsesAsLeadingInt(String devVersion, String equivalentVersion) {
+        assertDoesNotThrow(() -> new SempVersion(devVersion));
+        // number = major*1000 + leadingInt(minor); "0main"/"0SOL-..." both lead with 0
+        assertEquals(0, new SempVersion(devVersion).compareTo(new SempVersion(equivalentVersion)));
+    }
+
+    // Regression: standard versions with a numeric minor must still compute correctly.
+    @Test
+    void regression_standardVersion_9_6_producesCorrectNumber() {
+        SempVersion v = new SempVersion("9.6.0.34");
+        assertEquals(9006, getNumber(v));
+    }
+
+    // A segment with no leading digits (e.g. "main.0") has no numeric prefix to parse,
+    // so errPrintlnAndExit is called (throws SolConfigException in non-exit test mode).
+    @Test
+    void noLeadingDigits_callsErrPrintlnAndExit() {
+        assertThrows(SolConfigException.class, () -> new SempVersion("main.0"));
+    }
+
     private int getNumber(SempVersion sempVersion) {
         String text = sempVersion.getText();
         String[] parts = text.split("\\.");
