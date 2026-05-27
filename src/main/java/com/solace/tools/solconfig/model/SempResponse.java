@@ -8,7 +8,6 @@ import com.solace.tools.solconfig.Utils;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.solace.tools.solconfig.Utils.objectMapper;
@@ -38,13 +37,10 @@ public class SempResponse {
     }
 
     public Optional<String> getNextPageUri(){
-        return Optional.of(meta).map(SempMeta::getPaging).map(SempMeta.SempPaging::getNextPageUri);
+        return Optional.ofNullable(meta).map(SempMeta::getPaging).map(SempMeta.SempPaging::getNextPageUri);
     }
 
     public boolean isEmpty(){
-        if (Objects.isNull(data)){
-            return true;
-        }
         return data.isEmpty();
     }
 

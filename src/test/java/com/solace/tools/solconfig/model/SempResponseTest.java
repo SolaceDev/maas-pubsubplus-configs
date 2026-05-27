@@ -129,4 +129,32 @@ class SempResponseTest {
 
         assertTrue(resp.isEmpty());
     }
+
+    @Test
+    void getNextPageUri_metaIsNull_returnsEmptyOptional() {
+        SempResponse resp = SempResponse.ofString(NO_META_RESPONSE);
+
+        assertTrue(resp.getNextPageUri().isEmpty());
+    }
+
+    @Test
+    void getNextPageUri_metaPresentButPagingMissing_returnsEmptyOptional() {
+        SempResponse resp = SempResponse.ofString(FULL_RESPONSE);
+
+        assertTrue(resp.getNextPageUri().isEmpty());
+    }
+
+    @Test
+    void getNextPageUri_pagingPresent_returnsNextPageUri() {
+        String paginated = "{" +
+                "\"data\":[]," +
+                "\"links\":[]," +
+                "\"meta\":{\"responseCode\":200,\"paging\":{\"nextPageUri\":\"https://broker/SEMP/v2/config/page2\"}}" +
+                "}";
+
+        SempResponse resp = SempResponse.ofString(paginated);
+
+        assertTrue(resp.getNextPageUri().isPresent());
+        assertEquals("https://broker/SEMP/v2/config/page2", resp.getNextPageUri().get());
+    }
 }
