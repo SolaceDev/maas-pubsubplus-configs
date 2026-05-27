@@ -205,26 +205,22 @@ public class SempClient {
             nextPageUri = resp.getNextPageUri();
         }
         // Combine all paging results into one SempResponse
-        Optional<SempResponse> result = responseList.stream().reduce((r1, r2) -> {
-            if(r1.getLinks() == null){
-                r1.setLinks(new LinkedList<>());
-            }
-            if(r1.getData() == null){
-                r1.setData(new LinkedList<>());
-            }
-            Optional<List<Map<String, Object>>> dataOpt = Optional.ofNullable(r2.getData());
-            Optional<List<Map<String, String>>> dataLinks = Optional.ofNullable(r2.getLinks());
-            if (dataOpt.isPresent() && dataLinks.isPresent()) {
-                // need to be together because they form a page
-                r1.getData().addAll(dataOpt.get());
-                r1.getLinks().addAll(dataLinks.get());
-            }
-            // I don't think this is ever read. Kept for backwards compatibility
-            Optional.ofNullable(r2.getMeta())
-                    .ifPresent(r1::setMeta);
-            return r1;
-        });
+        Optional<SempResponse> result = responseList.stream().reduce(SempClient::mergeResponses);
         return result.orElse(null);
+    }
+
+    /**
+     * Merge {@code page} into {@code acc} by appending data and links and overwriting
+     * meta when present. {@link SempResponse} guarantees non-null {@code data} and
+     * {@code links}, so no null checks are needed here.
+     *
+     * @return the mutated accumulator {@code acc}
+     */
+    static SempResponse mergeResponses(SempResponse acc, SempResponse page) {
+        acc.getData().addAll(page.getData());
+        acc.getLinks().addAll(page.getLinks());
+        Optional.ofNullable(page.getMeta()).ifPresent(acc::setMeta);
+        return acc;
     }
 
     public String buildAbsoluteUri(String resourcePath) {
