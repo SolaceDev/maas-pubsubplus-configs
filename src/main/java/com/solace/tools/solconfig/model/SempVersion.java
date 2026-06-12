@@ -22,10 +22,24 @@ public class SempVersion implements Comparable<SempVersion>{
             Utils.errPrintlnAndExit(new IllegalArgumentException(version+" is an illegal SEMPv2 version."),"Unable to new a SempVersion object");
         }
         try {
-            number = Integer.parseInt(v[0]) * 1000 + Integer.parseInt(v[1]);
+            // dev-build minor segments like "0SOL-143449" or "0main" parse to their leading int (0)
+            number = parseLeadingInt(v[0]) * 1000 + parseLeadingInt(v[1]);
         }catch (NumberFormatException e){
             Utils.errPrintlnAndExit(new IllegalArgumentException(version+" is an illegal SEMPv2 version."),"Unable to new a SempVersion object");
         }
+    }
+
+    // Parses the leading numeric prefix of a version segment, stopping at the first
+    // non-digit character.  Mirrors EventBrokerVersionUtil.parseLeadingInt in maas-base.
+    private static int parseLeadingInt(String segment) {
+        int i = 0;
+        while (i < segment.length() && Character.isDigit(segment.charAt(i))) {
+            i++;
+        }
+        if (i == 0) {
+            throw new NumberFormatException("For input string: \"" + segment + "\"");
+        }
+        return Integer.parseInt(segment.substring(0, i));
     }
 
     @Override
