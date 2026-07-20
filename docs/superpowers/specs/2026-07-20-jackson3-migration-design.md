@@ -24,11 +24,9 @@ Blocker resolved during design: Jackson 3 requires Java 17; build.gradle:20 pins
 
 - `create()` → pinned `tools.jackson.databind.json.JsonMapper`
 - `builder()` → pinned `JsonMapper.Builder` for call sites needing extra config
-- Pins (restore Jackson 2 behavior):
-  - `MapperFeature.SORT_PROPERTIES_ALPHABETICALLY` disabled
-  - `EnumFeature.READ_ENUMS_USING_TO_STRING` / `WRITE_ENUMS_USING_TO_STRING` disabled
-  - `DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES` disabled
-  - constructor detection pinned to explicit-only (Jackson 2 creator semantics)
+- Pinning mechanism: `JsonMapper.builderWithJackson2Defaults()` (verified present in jackson-databind 3.1.5). This is Jackson's official Jackson 2 compatibility mode and covers a superset of the maas-core hand-rolled pins: SORT_PROPERTIES_ALPHABETICALLY off, enum toString read/write off, FAIL_ON_NULL_FOR_PRIMITIVES off, FAIL_ON_TRAILING_TOKENS off, DETECT_PARAMETER_NAMES off (Jackson 2 creator semantics), plus date/BigDecimal/getter-as-setter parity. Chosen over hand-rolled pins as strictly closer to Jackson 2. maas-core's extra `ACCEPT_CASE_INSENSITIVE_ENUMS` is deliberately omitted — it is not Jackson 2 behavior.
+- API note: `ObjectMapper.writer(PrettyPrinter)` was removed in Jackson 3; `Utils.toPrettyJsonMultiLineArray` uses `writer().with(prettyPrinter)` instead. `writerWithDefaultPrettyPrinter()`, `DefaultPrettyPrinter.indentArraysWith`, and `DefaultIndenter.SYSTEM_LINEFEED_INSTANCE` survive unchanged (verified against 3.1.5 jars).
+- API note: `SempClient.readMapFromJsonFile` catches only `IOException`; Jackson 3 parse errors are unchecked `JacksonException` and would escape. Catch broadens to `IOException | JacksonException` to preserve the errPrintlnAndExit behavior.
 
 Contract: every mapper in this codebase is built through this class. Inputs: none. Outputs: configured mapper/builder. Error states: none (pure construction).
 
