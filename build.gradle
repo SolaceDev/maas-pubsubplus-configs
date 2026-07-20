@@ -47,14 +47,14 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
 
     // This dependency is used by the application.
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.6'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
     implementation 'tools.jackson.core:jackson-databind:3.1.5'
     implementation 'info.picocli:picocli:4.7.0'
     annotationProcessor 'info.picocli:picocli-codegen:4.7.0'
     implementation 'ch.qos.logback:logback-classic:1.5.19'
-    implementation 'com.jayway.jsonpath:json-path:2.8.0'
+    implementation 'com.jayway.jsonpath:json-path:2.9.0'
     implementation 'org.freemarker:freemarker:2.3.31'
-    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.1")
 }
 
 tasks.named('test') {
