@@ -11,8 +11,10 @@ repositories {
 }
 
 task nativeAgent(type: Exec) {
-    commandLine 'mkdir', '-p', './src/main/resources/META-INF/native-image/solconfig'
-    commandLine 'java', '-agentlib:native-image-agent=config-output-dir=./src/main/resources/META-INF/native-image/solconfig', '-jar', 'build/libs/solconfig.jar', 'test'
+    doFirst {
+        file('./src/main/resources/META-INF/native-image/solconfig').mkdirs()
+    }
+    commandLine 'java', '-agentlib:native-image-agent=config-output-dir=./src/main/resources/META-INF/native-image/solconfig', '-jar', 'build/libs/maas-pubsubplus-configs.jar', 'test'
 }
 
 java {

@@ -47,10 +47,15 @@ public class Jackson2ImportGuardTest {
     private boolean hasJackson2Import(Path file) {
         try {
             return Files.readAllLines(file).stream()
-                    .anyMatch(line -> line.startsWith("import com.fasterxml.jackson")
-                            && !line.startsWith("import com.fasterxml.jackson.annotation"));
+                    .anyMatch(line -> isJackson2Import(line));
         } catch (IOException e) {
             throw new UncheckedIOException(file.toString(), e);
         }
+    }
+
+    private boolean isJackson2Import(String line) {
+        String stripped = line.startsWith("import static ") ? line.replace("import static ", "import ") : line;
+        return stripped.startsWith("import com.fasterxml.jackson")
+                && !stripped.startsWith("import com.fasterxml.jackson.annotation");
     }
 }
