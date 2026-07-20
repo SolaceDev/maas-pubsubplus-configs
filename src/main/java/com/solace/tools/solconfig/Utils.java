@@ -1,10 +1,10 @@
 package com.solace.tools.solconfig;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.util.DefaultIndenter;
+import tools.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 import com.solace.tools.solconfig.model.SempSpec;
 import com.solace.tools.solconfig.model.SolConfigException;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class Utils {
-    public static ObjectMapper objectMapper = new ObjectMapper();
+    public static JsonMapper objectMapper = JsonMappers.create();
     public static Properties properties = PropertiesLoader.loadProperties("application.properties");
 
     public static String sanitizeUrl(String data) {
@@ -110,7 +110,7 @@ public class Utils {
         String result = null;
         try {
             result = Utils.objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             errPrintlnAndExit(e, "Unable to convert the object into the json format.");
         }
         return result;
@@ -119,13 +119,15 @@ public class Utils {
     public static String toPrettyJsonMultiLineArray(Object obj) {
         String result = null;
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
             DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
             prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
-            result = objectMapper.writer(prettyPrinter).writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+            result = JsonMappers.builder()
+                    .enable(SerializationFeature.INDENT_OUTPUT)
+                    .build()
+                    .writer()
+                    .with(prettyPrinter)
+                    .writeValueAsString(obj);
+        } catch (JacksonException e) {
             errPrintlnAndExit(e, "Unable to convert the object into the json format.");
         }
         return result;

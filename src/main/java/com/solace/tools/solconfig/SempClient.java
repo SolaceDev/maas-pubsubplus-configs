@@ -11,6 +11,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import lombok.Getter;
+import tools.jackson.core.JacksonException;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.SSLContext;
@@ -276,7 +277,7 @@ public class SempClient {
             } else {
                 return (Map<String, Object>) Utils.objectMapper.readValue(Files.readString(confPath), Map.class);
             }
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             Utils.errPrintlnAndExit(e,
                     "File %s is not a valid configuration json file!",
                     confPath.toAbsolutePath());

@@ -1,6 +1,5 @@
 package com.solace.tools.solconfig.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -123,7 +122,7 @@ public class JsonSpecTest {
                     "  \"Write-Only\" : [ \"password\" ]\n" +
                     "}'"
     })
-    void testFindSpecialAttributes(String path, String expected) throws JsonProcessingException {
+    void testFindSpecialAttributes(String path, String expected) {
         var m1 = jsonSpec.findAttributes(path);
         var m2 = objectMapper.readValue(expected, Map.class);
         assertEquals(Utils.toPrettyJson(m2), Utils.toPrettyJson(m1));

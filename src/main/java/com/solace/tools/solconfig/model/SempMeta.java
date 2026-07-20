@@ -1,7 +1,7 @@
 package com.solace.tools.solconfig.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.Setter;
 import com.solace.tools.solconfig.Utils;
@@ -83,7 +83,7 @@ public class SempMeta {
         try {
             var node = objectMapper.readTree(input);
             return ofJsonNode(Optional.ofNullable(node.get("meta")).orElse(null));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             Utils.errPrintlnAndExit(
                     e, "Unable convert below text into a valid SempMeta structure.%n%s", input);
             return null;

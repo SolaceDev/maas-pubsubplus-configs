@@ -1,6 +1,6 @@
 package com.solace.tools.solconfig.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import com.solace.tools.solconfig.RestCommandList;
 import com.solace.tools.solconfig.Utils;
 import java.nio.charset.StandardCharsets;
@@ -105,7 +105,7 @@ public class ConfigObject {
                         TAB_SPACE.repeat(level),
                         Utils.objectMapper.writeValueAsString(name),
                         Utils.objectMapper.writeValueAsString(attributes.get(name))));
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 Utils.errPrintlnAndExit(e, "Unable to convert %s: %s to JSON format.",
                         name, attributes.get(name));
             }
@@ -125,7 +125,7 @@ public class ConfigObject {
             String name = names.next();
             try {
                 sb.append(String.format("%s%s: [%n", TAB_SPACE.repeat(level), Utils.objectMapper.writeValueAsString(name)));
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 Utils.errPrintlnAndExit(e, "Unable to convert %s to JSON format.%n", name);
             }
             Iterator<ConfigObject> list = children.get(name).iterator();

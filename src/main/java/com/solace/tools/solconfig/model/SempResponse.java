@@ -1,6 +1,6 @@
 package com.solace.tools.solconfig.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import lombok.Getter;
 import lombok.Setter;
 import com.solace.tools.solconfig.Utils;
@@ -26,7 +26,7 @@ public class SempResponse {
             resp.data = objectMapper.treeToValue(node.get("data"), List.class);
             resp.links = objectMapper.treeToValue(node.get("links"), List.class);
             resp.meta = SempMeta.ofJsonNode(node.get("meta"));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             Utils.errPrintlnAndExit(e,
                     "Unable to convert below string into SempResponse structure!%n%s",
                     content);
