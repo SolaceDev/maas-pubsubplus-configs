@@ -511,3 +511,47 @@ Report to the user (do not attempt these yourself):
 1. Regenerate native-image metadata: build the jar, then run `./gradlew nativeAgent`, and smoke-test the native binary (`solconfig test` against a broker). Jackson 3 (`tools.jackson.*`) will need new reflection entries; the existing Jackson 2 entries must stay for the runtime island.
 2. Smoke-test the jar CLI end-to-end against a real broker: run `java -jar build/libs/solconfig.jar backup` on the same broker with the pre-migration and post-migration jars and diff the two emitted config files — they must be byte-identical.
 3. Confirm no downstream consumer of the GitHub Packages artifact requires Java 11 (the jar is now Java 17 bytecode).
+
+---
+
+### Task 6: Refresh Jackson 2 island dependencies (added 2026-07-20)
+
+> Added after verifying on Maven Central that no Jackson 3 builds of json-path or logstash-logback-encoder exist (json-path 2.9.0 and logstash-encoder 8.1 are both Jackson 2-based). The island stays; this task brings it to the latest Jackson 2-compatible versions.
+
+**Files:**
+- Modify: `build.gradle` dependencies block (three version strings only)
+
+**Interfaces:**
+- Consumes: `Jackson2ImportGuardTest.jackson2RuntimeIslandMeetsSecurityFloor` (floor 2.18.6 must still pass)
+- Produces: island at latest Jackson 2 versions
+
+- [ ] **Step 1: Bump the three island versions**
+
+In `build.gradle`:
+
+```groovy
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
+```
+(replaces the 2.18.6 line)
+
+```groovy
+    implementation 'com.jayway.jsonpath:json-path:2.9.0'
+```
+(replaces the 2.8.0 line — fixes CVE-2023-51074)
+
+```groovy
+    implementation("net.logstash.logback:logstash-logback-encoder:8.1")
+```
+(replaces the 8.0 line)
+
+- [ ] **Step 2: Full suite**
+
+Run: `./gradlew clean test 2>&1 | tee /tmp/solconfig-test-task6.log`
+Expected: BUILD SUCCESSFUL, 84 tests, 0 failures. The guard floor test passes (2.22.1 ≥ 2.18.6). If any json-path-dependent test fails (JsonSpecTest, SempSpecTest), report BLOCKED with the output — do not adjust test expectations.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add build.gradle
+git commit -m "build: refresh Jackson 2 island to databind 2.22.1, json-path 2.9.0, logstash-encoder 8.1"
+```
