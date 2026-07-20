@@ -489,50 +489,25 @@ git commit -m "feat: guard Jackson 2 to import-free pinned runtime island"
 
 ---
 
-### Task 5: Native-image metadata cleanup + final verification
+### Task 5: Final verification + user handoff
+
+> **Revised after the Task 4 island decision.** The two `com.fasterxml.jackson.databind.ext.Java7*` reflect-config entries were slated for deletion as "dead in Jackson 3", but Jackson 2 databind now stays in the shipped binary (json-path provider on the SEMP spec parsing path), so its reflection metadata must remain. No file changes in this task — verification only.
 
 **Files:**
-- Modify: `src/main/resources/META-INF/native-image/solconfig/reflect-config.json` (remove two entries)
+- None modified
 
 **Interfaces:**
-- Consumes: nothing; independent cleanup
-- Produces: reflect-config.json free of Jackson 2 class references; regeneration of Jackson 3 entries is deferred to the user (`./gradlew nativeAgent` + native binary smoke test) per the spec's best-effort decision
+- Consumes: the completed migration (Tasks 1-4)
+- Produces: verified full build; handoff list for the user
 
-- [ ] **Step 1: Remove the two dead Jackson 2 entries**
-
-In `src/main/resources/META-INF/native-image/solconfig/reflect-config.json`, delete these two JSON objects (they reference classes that do not exist in Jackson 3; keep the surrounding array valid — watch trailing commas):
-
-```json
-{
-  "name":"com.fasterxml.jackson.databind.ext.Java7HandlersImpl",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-{
-  "name":"com.fasterxml.jackson.databind.ext.Java7SupportImpl",
-  "methods":[{"name":"<init>","parameterTypes":[] }]
-},
-```
-
-- [ ] **Step 2: Validate the JSON and confirm no Jackson references remain in native-image configs**
-
-Run: `python3 -m json.tool src/main/resources/META-INF/native-image/solconfig/reflect-config.json > /dev/null && grep -c 'jackson' src/main/resources/META-INF/native-image/solconfig/*.json`
-Expected: json.tool exits 0 (valid JSON); grep reports 0 for every file (grep exits 1 when nothing matches — that is the expected outcome).
-
-- [ ] **Step 3: Full clean build including the fat jar**
+- [ ] **Step 1: Full clean build including the fat jar**
 
 Run: `./gradlew clean build 2>&1 | tee /tmp/solconfig-build-final.log`
-Expected: BUILD SUCCESSFUL; `build/libs/solconfig.jar` exists.
+Expected: BUILD SUCCESSFUL; `build/libs/solconfig.jar` exists; 84 tests pass.
 
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/main/resources/META-INF/native-image/solconfig/reflect-config.json
-git commit -m "chore: drop Jackson 2 reflect-config entries absent from Jackson 3"
-```
-
-- [ ] **Step 5: Hand off user verification items**
+- [ ] **Step 2: Hand off user verification items**
 
 Report to the user (do not attempt these yourself):
-1. Regenerate native-image metadata: build the jar, then run `./gradlew nativeAgent`, and smoke-test the native binary (`solconfig test` against a broker).
+1. Regenerate native-image metadata: build the jar, then run `./gradlew nativeAgent`, and smoke-test the native binary (`solconfig test` against a broker). Jackson 3 (`tools.jackson.*`) will need new reflection entries; the existing Jackson 2 entries must stay for the runtime island.
 2. Smoke-test the jar CLI end-to-end against a real broker: run `java -jar build/libs/solconfig.jar backup` on the same broker with the pre-migration and post-migration jars and diff the two emitted config files — they must be byte-identical.
 3. Confirm no downstream consumer of the GitHub Packages artifact requires Java 11 (the jar is now Java 17 bytecode).

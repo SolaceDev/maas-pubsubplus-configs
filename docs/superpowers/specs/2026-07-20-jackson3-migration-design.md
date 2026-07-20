@@ -63,7 +63,7 @@ Decision: our code is 100% Jackson 3 (enforced by the import guard); Jackson 2 d
 
 ### Native image metadata
 
-src/main/resources/META-INF/native-image/solconfig/reflect-config.json: delete the two `com.fasterxml.jackson.databind.ext.Java7HandlersImpl` / `Java7SupportImpl` entries (classes do not exist in Jackson 3). Regeneration of Jackson 3 entries is done by the user via the `nativeAgent` task (build.gradle:13).
+No change in this migration. The two `com.fasterxml.jackson.databind.ext.Java7HandlersImpl` / `Java7SupportImpl` reflect-config entries were originally slated for deletion, but the Jackson 2 runtime island decision keeps Jackson 2 databind in the shipped binary (json-path's provider sits on the SEMP spec parsing path), so its reflection metadata must stay. Jackson 3 will need its own reflection entries: the user regenerates metadata via the `nativeAgent` task (build.gradle:13) and smoke-tests the native binary.
 
 ## Test Plan
 
