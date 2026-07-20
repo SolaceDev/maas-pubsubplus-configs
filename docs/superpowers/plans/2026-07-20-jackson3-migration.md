@@ -394,15 +394,17 @@ git commit -m "feat: migrate solconfig from Jackson 2 to Jackson 3 via JsonMappe
 
 ---
 
-### Task 4: Jackson 2 import guard + remove Jackson 2 dependency
+### Task 4: Jackson 2 import guard + pinned runtime island
+
+> **Revised after a BLOCKED implementation attempt.** Full classpath removal is impossible: `JsonSpec.java:7-8,25-26` uses json-path's Jackson 2 provider and `logstash-logback-encoder:8.0` is built on Jackson 2 databind. The direct `jackson-databind:2.18.6` line is a deliberate security upversion of that transitive (DATAGO-139728, commit e1f3048) — removing it would downgrade the runtime to 2.17.2. Decision (recorded in the spec): keep the line as a pinned runtime island; the guard enforces that our code never imports Jackson 2 and the island never falls below the security floor.
 
 **Files:**
 - Create: `src/test/java/com/solace/tools/solconfig/Jackson2ImportGuardTest.java`
-- Modify: `build.gradle` (remove the Jackson 2 dependency line)
+- `build.gradle`: NO change — `implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.6'` stays
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks (self-contained guard)
-- Produces: build fails if Jackson 2 reappears as an import or classpath artifact
+- Produces: build fails if Jackson 2 reappears in our source imports or the island version drops below 2.18.6
 
 - [ ] **Step 1: Write the guard test**
 
@@ -422,7 +424,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Jackson2ImportGuardTest {
 
@@ -439,9 +441,20 @@ public class Jackson2ImportGuardTest {
     }
 
     @Test
-    void jackson2DatabindAbsentFromClasspath() {
-        assertThrows(ClassNotFoundException.class,
-                () -> Class.forName("com.fasterxml.jackson.databind.ObjectMapper"));
+    void jackson2RuntimeIslandMeetsSecurityFloor() throws Exception {
+        Class<?> packageVersion;
+        try {
+            packageVersion = Class.forName("com.fasterxml.jackson.databind.cfg.PackageVersion");
+        } catch (ClassNotFoundException e) {
+            return;
+        }
+        Object version = packageVersion.getField("VERSION").get(null);
+        int major = (int) version.getClass().getMethod("getMajorVersion").invoke(version);
+        int minor = (int) version.getClass().getMethod("getMinorVersion").invoke(version);
+        int patch = (int) version.getClass().getMethod("getPatchLevel").invoke(version);
+        assertEquals(2, major);
+        assertTrue(minor > 18 || (minor == 18 && patch >= 6),
+                "Jackson 2 island below DATAGO-139728 floor 2.18.6: " + major + "." + minor + "." + patch);
     }
 
     private boolean hasJackson2Import(Path file) {
@@ -456,29 +469,22 @@ public class Jackson2ImportGuardTest {
 }
 ```
 
-- [ ] **Step 2: Run guard test to verify the classpath check fails**
+- [ ] **Step 2: Prove the import guard detects violations (RED)**
 
-Run: `./gradlew test --tests 'com.solace.tools.solconfig.Jackson2ImportGuardTest' 2>&1 | tee /tmp/solconfig-test-task4-red.log`
-Expected: `noJackson2ImportsInSources` PASSES (Task 3 removed all imports); `jackson2DatabindAbsentFromClasspath` FAILS — Jackson 2 is still a declared dependency, so `Class.forName` succeeds. This proves the guard detects classpath leaks.
+Temporarily add the line `import com.fasterxml.jackson.databind.util.RawValue;` to `src/test/java/com/solace/tools/solconfig/JsonMappersTest.java` (any migrated file works), then run:
+`./gradlew test --tests 'com.solace.tools.solconfig.Jackson2ImportGuardTest' 2>&1 | tee /tmp/solconfig-test-task4-red.log`
+Expected: `noJackson2ImportsInSources` FAILS naming JsonMappersTest.java; `jackson2RuntimeIslandMeetsSecurityFloor` PASSES (island present at 2.18.6). Then REVERT the temporary import (`git checkout -- src/test/java/com/solace/tools/solconfig/JsonMappersTest.java`).
 
-- [ ] **Step 3: Remove the Jackson 2 dependency**
-
-In `build.gradle`, delete the line:
-
-```groovy
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.6'
-```
-
-- [ ] **Step 4: Run the full suite to verify everything passes**
+- [ ] **Step 3: Run the full suite to verify everything passes**
 
 Run: `./gradlew clean test 2>&1 | tee /tmp/solconfig-test-task4-green.log`
-Expected: BUILD SUCCESSFUL, all tests pass including both guard tests. If compilation fails here, a source file still references Jackson 2 — fix the import (migrate it to `tools.jackson`), do not re-add the dependency.
+Expected: BUILD SUCCESSFUL, 84 tests (82 from Task 3 + 2 guard tests), zero failures. build.gradle is untouched — `git status` shows only the new test file.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add build.gradle src/test/java/com/solace/tools/solconfig/Jackson2ImportGuardTest.java
-git commit -m "feat: remove Jackson 2 dependency, guard against reintroduction"
+git add src/test/java/com/solace/tools/solconfig/Jackson2ImportGuardTest.java
+git commit -m "feat: guard Jackson 2 to import-free pinned runtime island"
 ```
 
 ---

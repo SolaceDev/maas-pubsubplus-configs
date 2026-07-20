@@ -48,9 +48,18 @@ Contract: every mapper in this codebase is built through this class. Inputs: non
 `src/test/java/com/solace/tools/solconfig/Jackson2ImportGuardTest.java`
 
 - Scans every `.java` file under `src/main/java` and `src/test/java` for `import com.fasterxml.jackson` (allowing `com.fasterxml.jackson.annotation`, which remains the annotation package in Jackson 3) and fails listing the offending files
-- Asserts `com.fasterxml.jackson.databind.ObjectMapper` is not loadable (`Class.forName` throws), proving no Jackson 2 databind artifact is on the classpath transitively
+- Asserts via reflection (no Jackson 2 import) that the Jackson 2 databind on the classpath is at least 2.18.6, protecting the DATAGO-139728 security floor
 
-Contract: build fails if Jackson 2 reappears via source imports or via a transitive dependency. Error state: assertion failure naming the offending file or artifact.
+Contract: build fails if Jackson 2 reappears in our source imports or its runtime version drops below the security floor. Error state: assertion failure naming the offending file or version.
+
+### Jackson 2 runtime island (decision, discovered during implementation)
+
+Full classpath removal of Jackson 2 databind is not possible without scope this migration rejects:
+- `JsonSpec.java:7-8,25-26` configures json-path with `JacksonJsonProvider`/`JacksonMappingProvider`, which instantiate a Jackson 2 mapper internally
+- `logstash-logback-encoder:8.0` is built on Jackson 2 databind for log encoding
+- The direct `com.fasterxml.jackson.core:jackson-databind:2.18.6` line in build.gradle is a deliberate security upversion (DATAGO-139728, commit e1f3048) of that transitive; removing it would downgrade the runtime to 2.17.2
+
+Decision: our code is 100% Jackson 3 (enforced by the import guard); Jackson 2 databind 2.18.6 remains as a pinned runtime island for json-path and logstash only — the same island pattern maas-core used for rest-lib's SEMP proxy. Eliminating the island (json-smart provider for json-path, replacing the logging encoder) is out of scope and carries behavior risk for no wire-format benefit.
 
 ### Native image metadata
 
@@ -69,7 +78,7 @@ Jackson 2 parity suite (new, `JsonMappersTest`) — one test per pinned default,
 
 Guard tests (new, `Jackson2ImportGuardTest`):
 8. No `import com.fasterxml.jackson` outside `.annotation` anywhere under `src/`
-9. `Class.forName("com.fasterxml.jackson.databind.ObjectMapper")` throws — Jackson 2 databind absent from classpath
+9. Jackson 2 databind classpath version ≥ 2.18.6 (reflection-based; protects the DATAGO-139728 security floor for the json-path/logstash runtime island)
 
 Integration/regression:
 10. Existing suite (`JsonSpecTest`, `SempSpecTest`, others) passes unmodified — proves wire output did not drift
