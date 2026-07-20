@@ -45,23 +45,38 @@ Contract: every mapper in this codebase is built through this class. Inputs: non
 
 `JacksonException` is unchecked; existing catch blocks remain legal and the defensive `errPrintlnAndExit` paths are preserved. `JsonNode` navigation (`get`, `asInt`, `asText`, `readTree`, `treeToValue`) is unchanged in Jackson 3.
 
+### Jackson 2 import guard (new)
+
+`src/test/java/com/solace/tools/solconfig/Jackson2ImportGuardTest.java`
+
+- Scans every `.java` file under `src/main/java` and `src/test/java` for `import com.fasterxml.jackson` (allowing `com.fasterxml.jackson.annotation`, which remains the annotation package in Jackson 3) and fails listing the offending files
+- Asserts `com.fasterxml.jackson.databind.ObjectMapper` is not loadable (`Class.forName` throws), proving no Jackson 2 databind artifact is on the classpath transitively
+
+Contract: build fails if Jackson 2 reappears via source imports or via a transitive dependency. Error state: assertion failure naming the offending file or artifact.
+
 ### Native image metadata
 
 src/main/resources/META-INF/native-image/solconfig/reflect-config.json: delete the two `com.fasterxml.jackson.databind.ext.Java7HandlersImpl` / `Java7SupportImpl` entries (classes do not exist in Jackson 3). Regeneration of Jackson 3 entries is done by the user via the `nativeAgent` task (build.gradle:13).
 
 ## Test Plan
 
-Unit tests (new, `JsonMappersTest`):
-1. `create()` serializes a POJO in declaration order, not alphabetical
-2. `create()` serializes an enum by `name()`, and deserializes case-exact `name()`
-3. `create()` deserializes null onto a primitive field as default value (no throw)
-4. `create()` preserves `LinkedHashMap` insertion order in output
-5. malformed JSON input throws `JacksonException`
+Jackson 2 parity suite (new, `JsonMappersTest`) — one test per pinned default, so any future Jackson 3 default drift fails loudly:
+1. Property order: `create()` serializes a POJO in declaration order, not alphabetical (`SORT_PROPERTIES_ALPHABETICALLY` pin)
+2. Enum write: enum serializes via `name()`, not `toString()` — verified with an enum whose `toString()` differs from `name()` (`WRITE_ENUMS_USING_TO_STRING` pin)
+3. Enum read: `name()` string deserializes to the enum; `toString()` form is rejected (`READ_ENUMS_USING_TO_STRING` pin)
+4. Null primitives: null deserializes onto a primitive field as its default, no throw (`FAIL_ON_NULL_FOR_PRIMITIVES` pin)
+5. Creator semantics: a POJO with a non-annotated multi-arg constructor is not implicitly bound; binding follows Jackson 2 explicit-only rules (constructor detector pin)
+6. Map order: `LinkedHashMap` insertion order preserved in output
+7. Errors: malformed JSON throws `JacksonException`
+
+Guard tests (new, `Jackson2ImportGuardTest`):
+8. No `import com.fasterxml.jackson` outside `.annotation` anywhere under `src/`
+9. `Class.forName("com.fasterxml.jackson.databind.ObjectMapper")` throws — Jackson 2 databind absent from classpath
 
 Integration/regression:
-6. Existing suite (`JsonSpecTest`, `SempSpecTest`, others) passes unmodified — proves wire output did not drift
-7. `Utils.toPrettyJson` / `toPrettyJsonMultiLineArray` output matches current formatting (multi-line arrays, system linefeed indent)
-8. `./gradlew build` produces the fat jar under toolchain 17
+10. Existing suite (`JsonSpecTest`, `SempSpecTest`, others) passes unmodified — proves wire output did not drift
+11. `Utils.toPrettyJson` / `toPrettyJsonMultiLineArray` output matches current formatting (multi-line arrays, system linefeed indent)
+12. `./gradlew build` produces the fat jar under toolchain 17
 
 Test output saved to file for review. Verification the user must do: regenerate native-image metadata (`nativeAgent`) and smoke-test the native binary; confirm no downstream consumer of the published jar requires Java 11.
 
@@ -70,7 +85,8 @@ Test output saved to file for review. Verification the user must do: regenerate 
 - CI runner lacks JDK 17 → Gradle toolchain error, fails fast. Permanent; fix by adding setup-java to workflows. Blast radius: CI only.
 - Downstream consumer on Java ≤ 16 loads the published jar → `UnsupportedClassVersionError`. Permanent; assumption accepted by user. If wrong, plan is invalidated — escalate.
 - Native binary missing Jackson 3 reflection entries at runtime → degraded, known, user regenerates metadata.
-- Jackson 3 default drift not covered by pins → caught by tests 1-7; escalate any new drift and pin it in `JsonMappers`.
+- Jackson 3 default drift not covered by pins → caught by parity tests 1-7; escalate any new drift and pin it in `JsonMappers`.
+- Jackson 2 reintroduced by a future dependency or import → caught by guard tests 8-9 at build time.
 
 ## Assumptions
 
