@@ -10,7 +10,7 @@ Blocker resolved during design: Jackson 3 requires Java 17; build.gradle:20 pins
 
 ## Decisions
 
-- Java toolchain: 11 → 17 (build.gradle:20). Gradle wrapper 7.6 supports 17; CI ubuntu-latest runners have JDK 17, no workflow change forced.
+- Java toolchain: 11 → 17 (build.gradle:20). Gradle wrapper upgraded 7.6→8.5 (7.6 cannot run on local JDKs newer than 19) with sha256-pinned distribution; all four CI workflows pin Temurin 17 via actions/setup-java@v4.
 - Dependency: `com.fasterxml.jackson.core:jackson-databind:2.18.6` → `tools.jackson.core:jackson-databind:3.1.5` (build.gradle:50), matching maas-core.
 - Chosen approach: centralized `JsonMappers` factory with Jackson 2-compat pins (maas-core pattern). Rejected: inline pins (duplication, drift risk), accepting Jackson 3 defaults (violates output-stability constraint).
 - Native image: best-effort. Remove dead `com.fasterxml.jackson.databind.ext.Java7*` entries from reflect-config.json; user regenerates metadata via the `nativeAgent` task and verifies the binary.

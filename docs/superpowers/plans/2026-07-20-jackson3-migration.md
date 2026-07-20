@@ -6,7 +6,7 @@
 
 **Architecture:** Jackson 2 and Jackson 3 have different Maven coordinates and packages, so both coexist during migration: add Jackson 3 + a pinned `JsonMappers` factory first (green), migrate the six source files (green), then remove Jackson 2 with a guard test that keeps it out permanently.
 
-**Tech Stack:** Java 17 toolchain, Gradle 7.6, `tools.jackson.core:jackson-databind:3.1.5`, JUnit 5.
+**Tech Stack:** Java 17 toolchain, Gradle 8.5 (wrapper upgraded from 7.6 mid-implementation), `tools.jackson.core:jackson-databind:3.1.5`, JUnit 5.
 
 **Spec:** `docs/superpowers/specs/2026-07-20-jackson3-migration-design.md`
 
@@ -503,13 +503,13 @@ git commit -m "feat: guard Jackson 2 to import-free pinned runtime island"
 - [ ] **Step 1: Full clean build including the fat jar**
 
 Run: `./gradlew clean build 2>&1 | tee /tmp/solconfig-build-final.log`
-Expected: BUILD SUCCESSFUL; `build/libs/solconfig.jar` exists; 84 tests pass.
+Expected: BUILD SUCCESSFUL; `build/libs/maas-pubsubplus-configs.jar` exists; 84 tests pass.
 
 - [ ] **Step 2: Hand off user verification items**
 
 Report to the user (do not attempt these yourself):
 1. Regenerate native-image metadata: build the jar, then run `./gradlew nativeAgent`, and smoke-test the native binary (`solconfig test` against a broker). Jackson 3 (`tools.jackson.*`) will need new reflection entries; the existing Jackson 2 entries must stay for the runtime island.
-2. Smoke-test the jar CLI end-to-end against a real broker: run `java -jar build/libs/solconfig.jar backup` on the same broker with the pre-migration and post-migration jars and diff the two emitted config files — they must be byte-identical.
+2. Smoke-test the jar CLI end-to-end against a real broker: run `java -jar build/libs/maas-pubsubplus-configs.jar backup` on the same broker with the pre-migration and post-migration jars and diff the two emitted config files — they must be byte-identical.
 3. Confirm no downstream consumer of the GitHub Packages artifact requires Java 11 (the jar is now Java 17 bytecode).
 
 ---
