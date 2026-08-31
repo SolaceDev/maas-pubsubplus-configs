@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Files;
+import java.io.IOException;
+
 @Slf4j
 public class Commander {
     @Getter @Setter
@@ -42,6 +45,31 @@ public class Commander {
         }
         configBroker.checkAttributeCombinations(); // keep requires attribute for backup
         return configBroker;
+    }
+
+    public void dumpBackup(String resourceType, String[] objectNames, boolean isKeepDefault, String outputPath){
+        ConfigBroker backup = backup(resourceType, objectNames, isKeepDefault);
+        Path path = Path.of(outputPath);
+        try {
+            if (path.getParent() != null) {
+                Files.createDirectories(path.getParent());
+            }
+        } catch (IOException e) {
+            log.warn("Failed to create parent directories: {}", e.getMessage());
+        }
+        printConfigBrokerToFile(backup, path);
+    }
+
+    public void printConfigBrokerToFile(ConfigBroker configBroker, Path filePath) {
+        try {
+            // Serialize the configBroker object to a string (e.g., JSON or plain text)
+            String content = configBroker.toString(); 
+            // Write the content to the specified file
+            Files.writeString(filePath, content);
+            log.info("ConfigBroker written to file: {}", filePath);
+        } catch (IOException e) {
+            log.error("Failed to write ConfigBroker to file: {}", filePath, e);
+        }
     }
 
     public void delete(String resourceType, String[] objectNames) {

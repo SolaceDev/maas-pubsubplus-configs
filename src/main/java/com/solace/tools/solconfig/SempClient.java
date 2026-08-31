@@ -231,6 +231,10 @@ public class SempClient {
     }
 
     private String sendWithAbsoluteURI(String method, String absUri, String payload) {
+        return sendWithAbsoluteURI(method, absUri, payload, true);
+    }
+
+    private String sendWithAbsoluteURI(String method, String absUri, String payload, boolean retry) {
         log.info("Sending with absolute URI {} {}", method, sanitizeUri(absUri));
         var bp = Objects.isNull(payload) || payload.isEmpty() ?
                 BodyPublishers.noBody() :
@@ -239,12 +243,18 @@ public class SempClient {
                 .method(method.toUpperCase(), bp)
                 .uri(URI.create(absUri))
                 .header("content-type", "application/json")
+                .timeout(Duration.ofMinutes(3))
                 .build();
 
         HttpResponse<String> response = null;
         try {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (InterruptedException | IOException e) {
+            if (retry && e instanceof IOException) {
+                log.warn("Retrying request due to: {}", e.getMessage());
+                return sendWithAbsoluteURI(method, absUri, payload, false);
+            }
+
             Utils.errPrintlnAndExit(e, "%s %s with playload:%n%s%n%s",
                     method.toUpperCase(), sanitizeUri(absUri), sanitizeJsonBody(payload), e.toString());
         }
