@@ -19,10 +19,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Publish secrets (PACKAGES_ADMIN_*) are scoped to the `release` environment
-    # so they are only exposed during a release run. Publishing to the
-    # maas-maven-artifacts registry is cross-repo, which the ephemeral
-    # GITHUB_TOKEN cannot do, so a PAT is required.
+    # Publish PAT is scoped to the `release` environment (cross-repo publish to
+    # maas-maven-artifacts can't use the ephemeral GITHUB_TOKEN).
     environment: release
     permissions:
       contents: write
@@ -51,10 +49,8 @@ jobs:
           generate_release_notes: true
           files: build/libs/*.jar
 
-  # Full FOSSA scan of the tagged release, uploaded to Guardian. Runs after the
-  # release job so the v<version> tag exists to check out. The revision is
-  # labelled with the clean semantic version so the released version is clearly
-  # visible in FOSSA (continuous develop scans stay SHA-keyed for Guardian).
+  # FOSSA scan of the tagged release, labelled with the clean version so the
+  # released version is identifiable in FOSSA. Runs after the tag is created.
   sca-scan:
     needs: release
     if: ${{ github.event.inputs.githubRelease == 'true' }}

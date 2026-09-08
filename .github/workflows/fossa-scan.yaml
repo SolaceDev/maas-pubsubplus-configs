@@ -1,11 +1,7 @@
 name: FOSSA SCA Scan
 
-# Software Composition Analysis via FOSSA, gated + uploaded to Guardian.
-# Replaces the retired WhiteSource scan. Vulnerability findings are reported
-# (non-blocking) and ticketed by Guardian's scheduled scan; license/policy
-# conflicts block. Runs on PRs (diff gate) and on push to develop — the
-# develop-branch run is what populates FOSSA so the nightly Guardian scan
-# has trunk data to fetch.
+# FOSSA SCA + Guardian upload. The push-to-develop run populates FOSSA so the
+# nightly Guardian scan has trunk data to fetch.
 
 on:
   pull_request:
@@ -29,8 +25,7 @@ permissions:
 jobs:
   sca-scan:
     name: FOSSA Scan
-    # Public repo: fork PRs cannot access the FOSSA secret, so skip them.
-    # (On push, github.event.pull_request is null, so this evaluates true.)
+    # Skip fork PRs — they can't access the FOSSA secret.
     if: ${{ github.event.pull_request.head.repo.fork != true }}
     uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@ba836c78c24cb222c480d6aced53ecd09189baee
     with:
