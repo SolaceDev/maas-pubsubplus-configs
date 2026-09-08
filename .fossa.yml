@@ -1,0 +1,17 @@
+version: 3
+
+server: https://app.fossa.com
+
+project:
+  name: maas-pubsubplus-configs
+  id: SolaceDev_maas-pubsubplus-configs
+  locator: SolaceDev_maas-pubsubplus-configs
+  labels:
+    - repository
+
+paths:
+  exclude:
+    - ./.git
+    - ./.github
+    - ./examples
+    - ./gradle

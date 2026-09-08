@@ -1,7 +1,7 @@
 name: Release and Publish
+
 on:
   workflow_dispatch:
-    # Inputs the workflow accepts.
     inputs:
       releaseVersion:
         type: string
@@ -12,43 +12,49 @@ on:
         description: Create github release
         required: true
         default: true
+
+permissions:
+  contents: read
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Publish secrets (PACKAGES_ADMIN_*) are scoped to the `release` environment
+    # so they are only exposed during a release run. Publishing to the
+    # maas-maven-artifacts registry is cross-repo, which the ephemeral
+    # GITHUB_TOKEN cannot do, so a PAT is required.
+    environment: release
     permissions:
-      contents: 'write'
-      id-token: 'write'
+      contents: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
-      - name: Release package
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build and publish package
         run: ./gradlew -Pversion="${{ github.event.inputs.releaseVersion }}" build publish --refresh-dependencies
         env:
           GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
           GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
 
-      - name: Changelog
-        uses: Bullrich/generate-release-changelog@master
-        id: Changelog
-        env:
-          REPO: ${{ github.repository }}
-
-      - name: Create github release
-        if: github.event.inputs.githubRelease
-        id: create_github_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      - name: Create GitHub release
+        if: ${{ github.event.inputs.githubRelease == 'true' }}
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: v${{ github.event.inputs.releaseVersion }}
-          release_name: v${{ github.event.inputs.releaseVersion }}
-          body: |
-            ${{ steps.Changelog.outputs.changelog }}
-          draft: false
-          prerelease: false
+          name: v${{ github.event.inputs.releaseVersion }}
+          generate_release_notes: true
+          files: build/libs/*.jar
 
   # Full FOSSA scan of the tagged release, uploaded to Guardian. Runs after the
-  # release job so the v<version> tag exists to scan.
+  # release job so the v<version> tag exists to check out. The revision is
+  # labelled with the clean semantic version so the released version is clearly
+  # visible in FOSSA (continuous develop scans stay SHA-keyed for Guardian).
   sca-scan:
     needs: release
     if: ${{ github.event.inputs.githubRelease == 'true' }}
@@ -67,5 +73,7 @@ jobs:
       config_file: ".github/workflow-config.json"
       setup_actions: '["setup-java"]'
       java_version: "17"
+      additional_scan_params: |
+        fossa.revision=${{ github.event.inputs.releaseVersion }}
     secrets:
       FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
