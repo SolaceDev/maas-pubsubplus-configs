@@ -46,3 +46,26 @@ jobs:
             ${{ steps.Changelog.outputs.changelog }}
           draft: false
           prerelease: false
+
+  # Full FOSSA scan of the tagged release, uploaded to Guardian. Runs after the
+  # release job so the v<version> tag exists to scan.
+  sca-scan:
+    needs: release
+    if: ${{ github.event.inputs.githubRelease == 'true' }}
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+      actions: read
+      checks: write
+      statuses: write
+      packages: read
+    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@ba836c78c24cb222c480d6aced53ecd09189baee
+    with:
+      git_ref: v${{ github.event.inputs.releaseVersion }}
+      use_vault: false
+      config_file: ".github/workflow-config.json"
+      setup_actions: '["setup-java"]'
+      java_version: "17"
+    secrets:
+      FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
