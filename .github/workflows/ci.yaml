@@ -31,6 +31,7 @@ jobs:
       config_file: ".github/workflow-config.json"
       setup_actions: '["setup-java"]'
       java_version: "17"
+      java_distribution: temurin
     secrets:
       FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
 

@@ -67,6 +67,7 @@ jobs:
       config_file: ".github/workflow-config.json"
       setup_actions: '["setup-java"]'
       java_version: "17"
+      java_distribution: temurin
       additional_scan_params: |
         fossa.revision=${{ github.event.inputs.releaseVersion }}
     secrets:
