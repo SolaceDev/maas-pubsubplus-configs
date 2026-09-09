@@ -14,8 +14,9 @@ concurrency:
 jobs:
   fossa:
     name: FOSSA Scan
-    # Skip fork PRs — they can't access the FOSSA secret.
-    if: ${{ github.event.pull_request.head.repo.fork != true }}
+    # Skip PRs opened from an external fork (no secret access). head.repo.fork is
+    # unreliable here since this repo is itself a fork, so compare repo names.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: read
       pull-requests: write
