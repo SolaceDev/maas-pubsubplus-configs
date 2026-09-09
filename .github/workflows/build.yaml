@@ -1,0 +1,52 @@
+name: build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: ['**']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish a SNAPSHOT to GitHub Packages (default branch only)"
+        type: boolean
+        default: false
+      ref:
+        description: "Git ref to build (defaults to the default branch)"
+        type: string
+        required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Enter the `release` environment (default-branch-only, holds the publish
+    # PAT) only when publishing; build/test runs use no environment or secrets.
+    environment: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish) && 'release' || '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || (github.event_name == 'workflow_dispatch' && github.event.repository.default_branch) || '' }}
+
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build and test
+        run: ./gradlew build
+
+      - name: Publish SNAPSHOT
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+        run: |
+          VERSION="$(echo "${{ inputs.ref || github.ref_name }}" | sed 's#/#_#g')-$(git rev-parse --short HEAD)-SNAPSHOT"
+          ./gradlew -Pversion="$VERSION" publish
+        env:
+          GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
+          GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
