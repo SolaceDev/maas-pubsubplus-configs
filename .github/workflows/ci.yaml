@@ -1,0 +1,46 @@
+name: ci
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fossa:
+    name: FOSSA Scan
+    # Skip fork PRs — they can't access the FOSSA secret.
+    if: ${{ github.event.pull_request.head.repo.fork != true }}
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+      actions: read
+      checks: write
+      statuses: write
+      packages: read
+    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@ba836c78c24cb222c480d6aced53ecd09189baee
+    with:
+      use_vault: false
+      config_file: ".github/workflow-config.json"
+      setup_actions: '["setup-java"]'
+      java_version: "17"
+    secrets:
+      FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+
+  build:
+    needs: fossa
+    if: ${{ !cancelled() && needs.fossa.result != 'failure' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build.yaml
+    with:
+      # Push to the default branch publishes a SNAPSHOT; PRs only build + test.
+      publish-snapshot: ${{ github.event_name == 'push' }}
+      ref: ${{ github.event.pull_request.head.sha || '' }}
+    secrets: inherit
