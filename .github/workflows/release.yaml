@@ -19,8 +19,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Publish PAT is scoped to the `release` environment (cross-repo publish to
-    # maas-maven-artifacts can't use the ephemeral GITHUB_TOKEN).
     environment: release
     permissions:
       contents: write
