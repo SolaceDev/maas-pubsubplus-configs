@@ -1,7 +1,7 @@
 name: Release and Publish
+
 on:
   workflow_dispatch:
-    # Inputs the workflow accepts.
     inputs:
       releaseVersion:
         type: string
@@ -12,37 +12,63 @@ on:
         description: Create github release
         required: true
         default: true
+
+permissions:
+  contents: read
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: release
     permissions:
-      contents: 'write'
-      id-token: 'write'
+      contents: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
-      - name: Release package
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build and publish package
         run: ./gradlew -Pversion="${{ github.event.inputs.releaseVersion }}" build publish --refresh-dependencies
         env:
           GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
           GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
 
-      - name: Changelog
-        uses: Bullrich/generate-release-changelog@master
-        id: Changelog
-        env:
-          REPO: ${{ github.repository }}
-
-      - name: Create github release
-        if: github.event.inputs.githubRelease
-        id: create_github_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      - name: Create GitHub release
+        if: ${{ github.event.inputs.githubRelease == 'true' }}
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: v${{ github.event.inputs.releaseVersion }}
-          release_name: v${{ github.event.inputs.releaseVersion }}
-          body: |
-            ${{ steps.Changelog.outputs.changelog }}
-          draft: false
-          prerelease: false
+          name: v${{ github.event.inputs.releaseVersion }}
+          generate_release_notes: true
+          files: build/libs/*.jar
+
+  # FOSSA scan of the tagged release, labelled with the clean version so the
+  # released version is identifiable in FOSSA. Runs after the tag is created.
+  sca-scan:
+    needs: release
+    if: ${{ github.event.inputs.githubRelease == 'true' }}
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+      actions: read
+      checks: write
+      statuses: write
+      packages: read
+    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@ba836c78c24cb222c480d6aced53ecd09189baee
+    with:
+      git_ref: v${{ github.event.inputs.releaseVersion }}
+      use_vault: false
+      config_file: ".github/workflow-config.json"
+      setup_actions: '["setup-java"]'
+      java_version: "17"
+      java_distribution: temurin
+      additional_scan_params: |
+        fossa.revision=${{ github.event.inputs.releaseVersion }}
+    secrets:
+      FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
