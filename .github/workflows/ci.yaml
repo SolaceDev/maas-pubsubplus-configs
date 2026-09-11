@@ -46,3 +46,38 @@ jobs:
       publish-snapshot: ${{ github.event_name == 'push' }}
       ref: ${{ github.event.pull_request.head.sha || '' }}
     secrets: inherit
+
+  # Record the scanned dev revision (sha + branch) in the solace-cloud-manifest DynamoDB table so
+  # Guardian's scheduled scan tracks this exact commit. Default-branch pushes only, after a clean
+  # scan. Auth is GitHub OIDC (no Vault): the run assumes the shared github-solace-cloud-manifest-rw
+  # role, gated by this repo's solace-cloud-manifest-rw custom property + OIDC sub customization.
+  update-manifest:
+    needs: fossa
+    if: ${{ needs.fossa.result == 'success' && github.event_name == 'push' && github.ref_name == github.event.repository.default_branch }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          role-to-assume: arn:aws:iam::868978040651:role/github-solace-cloud-manifest-rw
+          aws-region: us-east-1
+      - name: Write dev entry to solace-cloud-manifest
+        uses: SolaceDev/solace-public-workflows/.github/actions/update-manifest@7b54c55a744838b3105b74d283ba291a77261b9c # main
+        with:
+          table_name: solace-cloud-manifest
+          # Merge only the `dev` map for this repo's item; other attributes are left untouched.
+          item: |
+            {
+              "squad": {"S": "mission-control"},
+              "repository": {"S": "${{ github.event.repository.name }}"},
+              "dev": {"M": {
+                "chart_version": {"S": ""},
+                "image_tag": {"S": ""},
+                "release_version": {"S": "n/a"},
+                "sha": {"S": "${{ github.sha }}"},
+                "version": {"S": "${{ github.ref_name }}"}
+              }}
+            }
