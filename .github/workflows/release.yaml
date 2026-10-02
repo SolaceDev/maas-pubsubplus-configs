@@ -60,7 +60,7 @@ jobs:
       checks: write
       statuses: write
       packages: read
-    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@ba836c78c24cb222c480d6aced53ecd09189baee
+    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@main
     with:
       git_ref: v${{ github.event.inputs.releaseVersion }}
       use_vault: false
