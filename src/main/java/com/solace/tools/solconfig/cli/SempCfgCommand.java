@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
                 "then use the 'create' or 'update' command to restore the configuration.",
         subcommands = {
             BackupCommand.class,
+            DumpBackupCommand.class,
             DeleteCommand.class,
             CreateCommand.class,
             UpdateCommand.class,
