@@ -1,0 +1,32 @@
+name: Publish Maven artifact
+description: Deploy a prebuilt artifact and its POM to a Maven repository without running the project's build.
+
+inputs:
+  file:
+    description: "Artifact to deploy, e.g. the jar."
+    required: true
+  pom-file:
+    description: "POM describing the artifact (coordinates and version are read from it)."
+    required: true
+  repository-url:
+    description: "Maven repository URL to deploy to."
+    required: true
+  username:
+    description: "Repository username."
+    required: true
+  password:
+    description: "Repository password or token."
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Deploy
+      shell: bash
+      env:
+        FILE: ${{ inputs.file }}
+        POM_FILE: ${{ inputs.pom-file }}
+        REPOSITORY_URL: ${{ inputs.repository-url }}
+        MAVEN_USERNAME: ${{ inputs.username }}
+        MAVEN_PASSWORD: ${{ inputs.password }}
+      run: '"$GITHUB_ACTION_PATH/publish.sh" "$FILE" "$POM_FILE" "$REPOSITORY_URL"'

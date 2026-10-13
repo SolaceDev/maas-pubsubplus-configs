@@ -64,6 +64,12 @@ tasks.named('test') {
     }
 }
 
+// CI publishes only the jar and POM (.github/actions/publish-maven), so don't
+// advertise Gradle module metadata that is never uploaded.
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
+}
+
 publishing {
     repositories {
         maven {

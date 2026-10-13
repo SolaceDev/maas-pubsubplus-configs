@@ -25,7 +25,9 @@ jobs:
       checks: write
       statuses: write
       packages: read
-    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@main
+    # Tracked by branch on purpose (DATAGO-154079): that repo's main requires a
+    # reviewed PR, and the workflow pins its own actions to SHAs.
+    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@main # zizmor: ignore[unpinned-uses]
     with:
       use_vault: false
       config_file: ".github/workflow-config.json"
@@ -41,11 +43,10 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/build.yaml
+    # Build and test only. Publishing (release or SNAPSHOT) is opt-in through
+    # release.yaml, the only workflow that reaches the package credentials.
     with:
-      # Push to the default branch publishes a SNAPSHOT; PRs only build + test.
-      publish-snapshot: ${{ github.event_name == 'push' }}
       ref: ${{ github.event.pull_request.head.sha || '' }}
-    secrets: inherit
 
   # Record the scanned dev revision (sha + branch) in the solace-cloud-manifest DynamoDB table so
   # Guardian's scheduled scan tracks this exact commit. Default-branch pushes only, after a clean

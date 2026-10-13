@@ -218,8 +218,9 @@ When running the program with the "--use-template" option, template support will
 
 ## Release maas-pubsubplus-configs library
 ### Pre-requisites
-* Validate that the develop artifacts contains no new vulnerabilities in whitesource:
-  * https://saas.whitesourcesoftware.com/Wss/WSS.html#!project;id=9453472
+* The release runs a [release readiness check](.github/workflows/release-readiness-check.yaml) first: a FOSSA scan of
+  the commit, uploaded to Guardian, that blocks the release on FOSSA licensing or the Guardian vulnerability gate. Run it
+  on its own beforehand to check a commit ahead of time.
 
 To release maas-pubsubplus-configs, head over to the [release action in github](https://github.com/SolaceDev/maas-pubsubplus-configs/actions/workflows/release.yaml)
 * Click on **Run Wokflow**
@@ -227,6 +228,11 @@ To release maas-pubsubplus-configs, head over to the [release action in github](
 * Input the release version to create and publish, ex: 1.0.0
 * Uncheck **Create github release** if you want to skip creating a tag and github release (Recommend to leave this on)
 * Click on **Run Workflow**
+
+### Publishing a SNAPSHOT
+CI only builds and tests; it never publishes. To publish a SNAPSHOT of a branch, run the same release action with
+**snapshot** checked (the release version is ignored). It publishes `<branch>-<short sha>-SNAPSHOT` and skips the
+readiness check and the GitHub release.
 
 **CAUTION:**
 

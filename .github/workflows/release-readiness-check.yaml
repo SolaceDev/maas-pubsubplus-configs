@@ -1,0 +1,175 @@
+name: Release Readiness Check
+
+# Scans a release candidate with FOSSA, uploads the result to Guardian, and
+# blocks unless both gates pass:
+#   - FOSSA licensing: the `sca_scanning` policy in .github/workflow-config.json
+#     (BLOCK on policy_conflict, unlicensed_dependency).
+#   - Guardian vulnerability gate: Guardian's verdict for this version, which
+#     accounts for its thresholds, grace periods and accepted exceptions.
+# release.yaml calls it before publishing; dispatch it to check a commit ahead
+# of a release. skip_security_checks lets a repo admin (only) override a block.
+#
+# Requires the GUARDIAN_API_URL repository variable and the GUARDIAN_API_TOKEN
+# repository secret (repository scope, not an environment: release.yaml passes
+# it through a `uses:` job, which cannot enter an environment).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version to check, e.g. 1.0.0. Recorded as the FOSSA revision and the Guardian version."
+        required: true
+        type: string
+      git_ref:
+        description: "Branch, tag, or SHA to scan. Empty = the ref this workflow runs on."
+        required: false
+        type: string
+        default: ""
+      skip_security_checks:
+        description: "Admin-only: continue even if FOSSA licensing or Guardian blocks."
+        required: false
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      git_ref:
+        required: false
+        type: string
+        default: ""
+      skip_security_checks:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      FOSSA_API_KEY:
+        required: true
+      GUARDIAN_API_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  # Must match the product name the FOSSA upload derives from the FOSSA
+  # project id (SolaceDev_maas-pubsubplus-configs, org prefix stripped).
+  PRODUCT_NAME: maas-pubsubplus-configs
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    outputs:
+      enforce: ${{ steps.bypass.outputs.enforce }}
+    steps:
+      # The version becomes a FOSSA scan parameter and the Guardian version.
+      - name: Validate version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::version must look like 1.2.3, got '$VERSION'"
+            exit 1
+          fi
+
+      # Fail before scanning: without these the FOSSA upload is silently skipped
+      # and the gate has nothing current to judge.
+      - name: Check Guardian configuration
+        env:
+          GUARDIAN_URL: ${{ vars.GUARDIAN_API_URL }}
+          GUARDIAN_TOKEN: ${{ secrets.GUARDIAN_API_TOKEN }}
+        run: |
+          [[ -n "$GUARDIAN_URL" ]] || { echo "::error::Repository variable GUARDIAN_API_URL is not set."; exit 1; }
+          [[ -n "$GUARDIAN_TOKEN" ]] || { echo "::error::Repository secret GUARDIAN_API_TOKEN is not set."; exit 1; }
+
+      - name: Resolve bypass authorisation
+        id: bypass
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          # Passed through env, never interpolated into the script body: this is
+          # the one control between a block and a publish.
+          SKIP_SECURITY_CHECKS: ${{ inputs.skip_security_checks }}
+        with:
+          script: |
+            if (process.env.SKIP_SECURITY_CHECKS !== 'true') {
+              core.setOutput('enforce', 'true');
+              return;
+            }
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.actor,
+            });
+            const admin = data.permission === 'admin';
+            core.setOutput('enforce', admin ? 'false' : 'true');
+            core.warning(admin
+              ? `Security bypass authorised for admin ${context.actor}.`
+              : `${context.actor} is not an admin (${data.permission}); bypass denied.`);
+
+  fossa:
+    name: FOSSA scan
+    needs: prepare
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+      actions: read
+      checks: write
+      statuses: write
+      packages: read
+    # Tracked by branch on purpose, as in ci.yaml (DATAGO-154079).
+    # Reviewed-PR-only main; the workflow pins its own actions to SHAs.
+    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@main # zizmor: ignore[unpinned-uses]
+    with:
+      git_ref: ${{ inputs.git_ref || github.sha }}
+      use_vault: false
+      config_file: ".github/workflow-config.json"
+      guardian_url: ${{ vars.GUARDIAN_API_URL }}
+      setup_actions: '["setup-java"]'
+      java_version: "17"
+      java_distribution: temurin
+      skip_policy_gate: ${{ needs.prepare.outputs.enforce == 'false' }}
+      bypass_justification: "Admin bypass via skip_security_checks"
+      additional_scan_params: |
+        fossa.revision=${{ inputs.version }}
+    secrets:
+      FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+      GUARDIAN_API_TOKEN: ${{ secrets.GUARDIAN_API_TOKEN }}
+
+  # Runs even when FOSSA licensing blocks, so one run reports both verdicts;
+  # the FOSSA job's failure still fails the check.
+  guardian:
+    name: Guardian gate
+    needs: [prepare, fossa]
+    if: ${{ !cancelled() && needs.prepare.result == 'success' }}
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    env:
+      GUARDIAN_URL: ${{ vars.GUARDIAN_API_URL }}
+      VERSION: ${{ inputs.version }}
+      ENFORCE: ${{ needs.prepare.outputs.enforce }}
+    steps:
+      - name: Guardian DB sync and Jira report
+        uses: SolaceDev/solace-public-workflows/guardian-db-sync@252af7a10cf89621d64f004906b69ba71244842b # main
+        with:
+          guardian-url: ${{ env.GUARDIAN_URL }}
+          guardian-key: ${{ secrets.GUARDIAN_API_TOKEN }}
+          product-name: ${{ env.PRODUCT_NAME }}
+          product-full-version: ${{ env.VERSION }}
+          unifiers: "fossa"
+          upload-logs: "true"
+
+      - name: Guardian vulnerability gate
+        uses: SolaceDev/solace-public-workflows/guardian-vulnerability-gate@252af7a10cf89621d64f004906b69ba71244842b # main
+        with:
+          guardian-url: ${{ env.GUARDIAN_URL }}
+          guardian-key: ${{ secrets.GUARDIAN_API_TOKEN }}
+          product-name: ${{ env.PRODUCT_NAME }}
+          product-version: ${{ env.VERSION }}
+          fail-on-blocked: ${{ env.ENFORCE }}
+          upload-logs: "true"
