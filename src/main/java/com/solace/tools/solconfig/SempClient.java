@@ -205,13 +205,22 @@ public class SempClient {
             nextPageUri = resp.getNextPageUri();
         }
         // Combine all paging results into one SempResponse
-        var result = responseList.stream().reduce((r1, r2) -> {
-            r1.getData().addAll(r2.getData());
-            r1.getLinks().addAll(r2.getLinks());
-            r1.setMeta(r2.getMeta());
-            return r1;
-        });
+        Optional<SempResponse> result = responseList.stream().reduce(SempClient::mergeResponses);
         return result.orElse(null);
+    }
+
+    /**
+     * Merge {@code page} into {@code acc} by appending data and links and overwriting
+     * meta when present. {@link SempResponse} guarantees non-null {@code data} and
+     * {@code links}, so no null checks are needed here.
+     *
+     * @return the mutated accumulator {@code acc}
+     */
+    static SempResponse mergeResponses(SempResponse acc, SempResponse page) {
+        acc.getData().addAll(page.getData());
+        acc.getLinks().addAll(page.getLinks());
+        Optional.ofNullable(page.getMeta()).ifPresent(acc::setMeta);
+        return acc;
     }
 
     public String buildAbsoluteUri(String resourcePath) {
