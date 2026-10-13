@@ -3,8 +3,7 @@ name: build
 # Builds and tests. Holds no secrets and never publishes: with `stage: true` it
 # uploads the jar and its POM as the `maven-publication` artifact, and
 # release.yaml's publish job (in the `release` environment) deploys them with
-# .github/actions/publish-maven. Build code never runs next to the package
-# credentials.
+# maven-deploy-plugin. Build code never runs next to the package credentials.
 
 on:
   workflow_call:
@@ -58,9 +57,13 @@ jobs:
         run: |
           if [[ "$SNAPSHOT" == "true" ]]; then
             VERSION="${REF_NAME//\//_}-${SHA::7}-SNAPSHOT"
-          elif [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::version must look like 1.2.3, got '$VERSION'"
-            exit 1
+          else
+            # Accept "v1.2.3" too; tags add their own "v".
+            VERSION="${VERSION#v}"
+            if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::version must look like 1.2.3, got '$VERSION'"
+              exit 1
+            fi
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
