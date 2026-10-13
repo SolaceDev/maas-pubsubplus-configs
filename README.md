@@ -219,7 +219,7 @@ When running the program with the "--use-template" option, template support will
 ## Release maas-pubsubplus-configs library
 ### Pre-requisites
 * The release runs a [release readiness check](.github/workflows/release-readiness-check.yaml) first: a FOSSA scan of
-  the commit that blocks the release on FOSSA licensing or the Guardian release gate (Critical/High vulnerabilities).
+  the commit that blocks the release on FOSSA licensing or the Guardian release gate (thresholds configured in Guardian; by default any Critical/High).
   Run it on its own beforehand to check a commit ahead of time.
 
 To release maas-pubsubplus-configs, head over to the [release action in github](https://github.com/SolaceDev/maas-pubsubplus-configs/actions/workflows/release.yaml)

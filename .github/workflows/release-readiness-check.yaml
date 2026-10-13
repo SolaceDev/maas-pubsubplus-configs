@@ -4,8 +4,8 @@ name: Release Readiness Check
 #   - FOSSA licensing: the `sca_scanning` policy in .github/workflow-config.json
 #     (BLOCK on policy_conflict, unlicensed_dependency).
 #   - Guardian release gate: registers this version's FOSSA revision with
-#     Guardian and blocks on any Critical or High vulnerability that Guardian
-#     has not excluded.
+#     Guardian and blocks on vulnerabilities over the release-gate thresholds
+#     configured in Guardian (by default any Critical or High not excluded).
 # release.yaml calls it before publishing; dispatch it to check a commit ahead
 # of a release. skip_security_checks lets a repo admin (only) override a block.
 #
@@ -156,5 +156,7 @@ jobs:
           product-version: ${{ github.event.repository.default_branch }}
           product-full-version: ${{ needs.prepare.outputs.version }}
           fossa-revision: ${{ needs.prepare.outputs.version }}
-          severity: '["Critical","High"]'
+          # No thresholds here: Guardian applies the product's
+          # release_gate_thresholds (product -> squad -> root), defaulting to
+          # blocking on any Critical or High.
           fail-on-blocked: ${{ needs.prepare.outputs.enforce }}
