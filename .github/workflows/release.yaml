@@ -5,53 +5,34 @@ on:
     inputs:
       releaseVersion:
         type: string
-        description: "the maas-pubsubplus-configs release version to create, example: 1.0.0"
-        required: true
+        description: "the maas-pubsubplus-configs release version to create, example: 1.0.0 (a leading v is dropped; ignored for a snapshot)"
+        required: false
+      snapshot:
+        type: boolean
+        description: "Publish a <branch>-<sha>-SNAPSHOT instead of a release (no readiness check, no GitHub release)"
+        required: false
+        default: false
       githubRelease:
         type: boolean
-        description: Create github release
+        description: Create github release (releases only)
         required: true
         default: true
+      skip_security_checks:
+        type: boolean
+        description: "Admin-only: publish even if FOSSA licensing or Guardian blocks"
+        required: false
+        default: false
 
 permissions:
   contents: read
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Build and publish package
-        run: ./gradlew -Pversion="${{ github.event.inputs.releaseVersion }}" build publish --refresh-dependencies
-        env:
-          GITHUB_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
-          GITHUB_TOKEN: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
-
-      - name: Create GitHub release
-        if: ${{ github.event.inputs.githubRelease == 'true' }}
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        with:
-          tag_name: v${{ github.event.inputs.releaseVersion }}
-          name: v${{ github.event.inputs.releaseVersion }}
-          generate_release_notes: true
-          files: build/libs/*.jar
-
-  # FOSSA scan of the tagged release, labelled with the clean version so the
-  # released version is identifiable in FOSSA. Runs after the tag is created.
-  sca-scan:
-    needs: release
-    if: ${{ github.event.inputs.githubRelease == 'true' }}
+  # Release gate: scans the commit being released with FOSSA and blocks the
+  # publish on FOSSA licensing or the Guardian release gate. Runs regardless of
+  # githubRelease; skipped for a snapshot, which is not a release.
+  readiness:
+    name: Release readiness
+    if: ${{ !inputs.snapshot }}
     permissions:
       contents: read
       pull-requests: write
@@ -60,15 +41,88 @@ jobs:
       checks: write
       statuses: write
       packages: read
-    uses: SolaceDev/solace-public-workflows/.github/workflows/sca-scan-and-guard.yaml@main
+    uses: ./.github/workflows/release-readiness-check.yaml # zizmor: ignore[secrets-inherit]
     with:
-      git_ref: v${{ github.event.inputs.releaseVersion }}
-      use_vault: false
-      config_file: ".github/workflow-config.json"
-      setup_actions: '["setup-java"]'
-      java_version: "17"
-      java_distribution: temurin
-      additional_scan_params: |
-        fossa.revision=${{ github.event.inputs.releaseVersion }}
-    secrets:
-      FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+      version: ${{ inputs.releaseVersion }}
+      git_ref: ${{ github.sha }}
+      skip_security_checks: ${{ inputs.skip_security_checks }}
+    # Load-bearing: a called workflow's `environment: guardian` job only
+    # resolves that environment's secrets when the caller opens the secrets
+    # context (solace-broker-mcp hit this twice). Named secrets cannot work:
+    # this job cannot enter the environment to read them. The readiness
+    # workflow forwards only FOSSA_API_KEY to the scan that runs build code.
+    secrets: inherit
+
+  # Builds and tests with no secrets, in parallel with readiness.
+  build:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build.yaml
+    with:
+      stage: true
+      snapshot: ${{ inputs.snapshot }}
+      version: ${{ inputs.releaseVersion }}
+
+  # Deploys the jar and POM that `build` staged, only once readiness passes
+  # (or was skipped for a snapshot). It runs no repository code, only the stock
+  # maven-deploy-plugin, and is the only job that can read the package
+  # credentials.
+  publish:
+    needs: [readiness, build]
+    if: >-
+      ${{ !cancelled() && needs.build.result == 'success' &&
+      (needs.readiness.result == 'success' || (inputs.snapshot && needs.readiness.result == 'skipped')) }}
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: maven-publication
+          path: publication
+
+      # Writes ~/.m2/settings.xml with a `github` server whose credentials are
+      # read from the env vars named here at deploy time.
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+          server-id: github
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
+      - name: Publish package
+        env:
+          MAVEN_USERNAME: ${{ secrets.PACKAGES_ADMIN_USER }}
+          MAVEN_PASSWORD: ${{ secrets.PACKAGES_ADMIN_TOKEN }}
+        run: >-
+          mvn --batch-mode --no-transfer-progress --strict-checksums
+          org.apache.maven.plugins:maven-deploy-plugin:3.1.4:deploy-file
+          -DrepositoryId=github
+          -Durl=https://maven.pkg.github.com/SolaceDev/maas-maven-artifacts
+          -Dfile=publication/libs/maas-pubsubplus-configs.jar
+          -DpomFile=publication/publications/jar/pom-default.xml
+
+  github-release:
+    needs: [build, publish]
+    if: ${{ inputs.githubRelease && !inputs.snapshot }}
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+    env:
+      # Normalised by build.yaml to a bare X.Y.Z (any leading "v" stripped).
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: maven-publication
+          path: publication
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: publication/libs/*.jar
