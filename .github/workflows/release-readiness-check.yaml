@@ -147,7 +147,7 @@ jobs:
           [[ -n "$GUARDIAN_TOKEN" ]] || { echo "::error::Secret GUARDIAN_API_TOKEN is not set in the guardian environment."; exit 1; }
 
       - name: Guardian release gate
-        uses: SolaceDev/solace-public-workflows/guardian-release-gate@252af7a10cf89621d64f004906b69ba71244842b # main
+        uses: SolaceDev/solace-public-workflows/guardian-release-gate@842e0b85d4f91dd5d0ad9e7ac0c75cee21aa5282 # main
         with:
           guardian-url: ${{ secrets.GUARDIAN_API_URL }}
           guardian-key: ${{ secrets.GUARDIAN_API_TOKEN }}
