@@ -66,7 +66,7 @@ jobs:
           role-to-assume: arn:aws:iam::868978040651:role/github-solace-cloud-manifest-rw
           aws-region: us-east-1
       - name: Write dev entry to solace-cloud-manifest
-        uses: SolaceDev/solace-public-workflows/.github/actions/update-manifest@7b54c55a744838b3105b74d283ba291a77261b9c # main
+        uses: SolaceDev/solace-public-workflows/.github/actions/update-manifest@842e0b85d4f91dd5d0ad9e7ac0c75cee21aa5282 # main
         with:
           table_name: solace-cloud-manifest
           # Merge only the `dev` map for this repo's item; other attributes are left untouched.
