@@ -77,6 +77,10 @@ public class Utils {
         log.info(text);
     }
 
+    public static void warn(String format, Object... args) {
+        log.warn(String.format(format, args));
+    }
+
     public static void err(String format, Object... args) {
         log.error(String.format(format, args));
     }
