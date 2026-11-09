@@ -63,12 +63,12 @@ public class RestCommandList {
                 if (cmd.method == HTTPMethod.DELETE &&
                         (semp_code == SEMPError.NOT_ALLOWED.getValue() ||
                                 semp_code == SEMPError.CONFIGDB_OBJECT_DEPENDENCY.getValue())) {
-                    Utils.err("%s, retry later%n", SEMPError.ofInt(semp_code));
+                    warnRetryLater(cmd, semp_code);
                     retryCommands.add(cmd);
                 } else if (cmd.method == HTTPMethod.POST && // add new object
                         semp_code == SEMPError.NOT_FOUND.getValue()) { // means that the new object depends on some
                                                                        // objects that does not exist
-                    Utils.err("%s, retry later%n", SEMPError.ofInt(semp_code));
+                    warnRetryLater(cmd, semp_code);
                     retryCommands.add(cmd);
                 } else if (cmd.method == HTTPMethod.POST &&
                         semp_code == SEMPError.ALREADY_EXISTS.getValue()) {
@@ -85,6 +85,14 @@ public class RestCommandList {
         }
         if (!retryCommands.isEmpty())
             execute(sempClient, retryCommands);
+    }
+
+    /**
+     * A transient SEMP error the command is retried for: WARN, not ERROR, naming the method and resource.
+     */
+    private void warnRetryLater(Command cmd, int sempCode) {
+        Utils.warn("%s on %s %s, retry later", SEMPError.ofInt(sempCode), cmd.method.name(),
+                Utils.sanitizeUrl(cmd.resourcePath));
     }
 
     private String toCurlScript(SempClient sempClient) {

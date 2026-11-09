@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 ### Fixed
+- fix: log transient SEMP retry errors at WARN, naming the method and resource path (DATAGO-131351)
 - fix: don't treat subscriptions start with "#" as reserved Object
 - fix: retry the POST action if its dependencies are not found
 - fix: add " --use-template" option to avoid the conflicts between the template and the Substitution Expressions
