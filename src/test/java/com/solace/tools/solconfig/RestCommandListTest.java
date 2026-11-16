@@ -78,6 +78,20 @@ class RestCommandListTest {
         assertNoErrorAndRetryWarns(List.of(expected, expected));
     }
 
+    @Test
+    void alreadyExistsErrorNamesMethodAndPath() {
+        var sempClient = new ScriptedSempClient(SEMPError.ALREADY_EXISTS.getValue());
+        var commands = new RestCommandList();
+        commands.append(HTTPMethod.POST, "/msgVpns/vpn1/clientProfiles", "{\"clientProfileName\":\"p1\"}");
+
+        commands.execute(sempClient, false);
+
+        assertEquals(1, sempClient.calls);
+        var errors = appender.list.stream().filter(e -> e.getLevel() == Level.ERROR)
+                .map(e -> e.getFormattedMessage().trim()).collect(Collectors.toList());
+        assertEquals(List.of("ALREADY_EXISTS on POST /msgVpns/vpn1/clientProfiles"), errors);
+    }
+
     private void assertNoErrorAndRetryWarns(List<String> expectedMessages) {
         List<ILoggingEvent> events = appender.list;
         var errors = events.stream().filter(e -> e.getLevel() == Level.ERROR)

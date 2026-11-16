@@ -72,7 +72,8 @@ public class RestCommandList {
                     retryCommands.add(cmd);
                 } else if (cmd.method == HTTPMethod.POST &&
                         semp_code == SEMPError.ALREADY_EXISTS.getValue()) {
-                    Utils.err("%s%n", SEMPError.ALREADY_EXISTS);
+                    Utils.err("%s on %s %s%n", SEMPError.ALREADY_EXISTS, cmd.method.name(),
+                            Utils.sanitizeUrl(cmd.resourcePath));
                 } else {
                     Utils.err("%n%s%s%n", Objects.nonNull(cmd.payload) ? cmd.payload + "\n" : "", meta.toString());
                     if (!Utils.isExitOnErrors()) {
